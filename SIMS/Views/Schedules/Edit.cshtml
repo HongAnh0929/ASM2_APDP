@@ -1,0 +1,90 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model SIMS.DatabaseContext.Entities.Schedule
+
+@{
+    // Chỉ định layout chung
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+
+    // Gửi dữ liệu tiêu đề sang layout
+    ViewData["title"] = "Edit Schedules";
+    ViewData["breadcrumb"] = "Schedules";
+    ViewData["breadcrumb_item"] = "Edit Schedules";
+}
+
+<form asp-action="Edit" method="post">
+    @* Khi submit form, gửi POST đến Action Edit *@
+
+    <!-- Hidden ID -->
+    <!-- Cần để giữ lại ScheduleId để biết đang chỉnh sửa lịch nào -->
+    <input type="hidden" asp-for="ScheduleId" />
+
+    <div class="mb-3">
+        <label>Faculty</label>
+
+        <!-- Dropdown chọn khoa (Faculty) -->
+        <!-- dùng name="FacultyId" để controller nhận đúng giá trị -->
+        <select name="FacultyId" class="form-select" required>
+            <option value="">-- select faculty --</option>
+
+            @foreach (var f in (List<SelectListItem>)ViewBag.Faculties)
+            {
+                <!-- Với Edit:
+                     f.Selected = true cho khoa hiện tại của Schedule
+                     Razor sẽ thêm thuộc tính selected vào option đó
+                -->
+                <option value="@f.Value" selected="@(f.Selected ? "selected" : null)">
+                    @f.Text
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Course</label>
+
+        <!-- Dropdown chọn Course -->
+        <select name="CourseId" class="form-select" required>
+            <option value="">-- select course --</option>
+
+            @foreach (var c in (List<SelectListItem>)ViewBag.Courses)
+            {
+                <!-- Giống như Faculty, mục Course đang được chọn sẽ có selected -->
+                <option value="@c.Value" selected="@(c.Selected ? "selected" : null)">
+                    @c.Text
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Date</label>
+
+        <!-- Input date cần định dạng yyyy-MM-dd vì HTML5 yêu cầu -->
+        <input type="date" name="Date" class="form-control"
+               value="@Model.Date.ToString("yyyy-MM-dd")" required />
+    </div>
+
+    <div class="mb-3">
+        <label>Time</label>
+
+        <!-- Thời gian (string) ví dụ: 08:00 - 10:00 -->
+        <input type="text" name="Time" class="form-control"
+               value="@Model.Time" placeholder="08:00 - 10:00" required />
+    </div>
+
+    <div class="mb-3">
+        <label>Room</label>
+
+        <!-- Phòng học -->
+        <input type="text" name="Room" class="form-control"
+               value="@Model.Room" required />
+    </div>
+
+    <!-- Nút Update -->
+    <button class="btn btn-primary">Update</button>
+
+    <!-- Quay về danh sách -->
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

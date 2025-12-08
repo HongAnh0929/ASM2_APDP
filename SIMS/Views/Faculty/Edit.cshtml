@@ -1,0 +1,75 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model SIMS.DatabaseContext.Entities.Faculty
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    ViewData["title"] = "Edit Faculty";
+    ViewData["breadcrumb"] = "Faculty";
+    ViewData["breadcrumb_item"] = "Edit Faculty";
+}
+
+<!-- Form gửi POST tới Faculty/Edit -->
+<form asp-action="Edit" method="post">
+
+    <!-- Hidden field để gửi FacultyId về Controller -->
+    <input type="hidden" name="facultyId" value="@Model.FacultyId" />
+
+    <!-- Faculty Name -->
+    <div class="form-group">
+        <label asp-for="FacultyName"></label>
+        <!-- asp-for tự binding value từ Model -->
+        <input asp-for="FacultyName" class="form-control" />
+        <span asp-validation-for="FacultyName" class="text-danger"></span>
+    </div>
+
+    <!-- Email -->
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <!-- Department -->
+    <div class="form-group">
+        <label asp-for="Department"></label>
+        <input asp-for="Department" class="form-control" />
+        <span asp-validation-for="Department" class="text-danger"></span>
+    </div>
+
+    <!-- Phone -->
+    <div class="form-group">
+        <label asp-for="Phone"></label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+
+    <!-- Hire Date -->
+    <div class="form-group">
+        <label asp-for="HireDate"></label>
+        <!-- type="date" giúp hiển thị datepicker -->
+        <input asp-for="HireDate" type="date" class="form-control" />
+        <span asp-validation-for="HireDate" class="text-danger"></span>
+    </div>
+
+    <!-- USERNAME: Lấy từ bảng User liên kết với Faculty -->
+    <div class="form-group">
+        <label>Username</label>
+        <!-- name="NewUserName" phải trùng tên biến trong Controller -->
+        <!-- Lấy giá trị từ Model.User?.Username -->
+        <input type="text" name="NewUserName" class="form-control" value="@Model.User?.Username" />
+    </div>
+
+    <!-- PASSWORD: hiển thị password hiện tại (plaintext) -->
+    <div class="form-group">
+        <label>Password</label>
+        <!-- name="NewUserPassword" match với Controller -->
+        <!-- Lấy HashPassword (password đang lưu dạng text) -->
+        <input type="password" name="NewUserPassword" class="form-control" value="@Model.User?.HashPassword" />
+    </div>
+
+    <!-- BUTTONS -->
+    <button type="submit" class="btn btn-primary mt-2">Update</button>
+    <a asp-action="Index" class="btn btn-secondary mt-2">Cancel</a>
+</form>

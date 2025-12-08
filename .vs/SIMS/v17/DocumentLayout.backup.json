@@ -1,0 +1,137 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\APDP\\SIMS\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{33A349D6-9473-4894-877C-A73DE22378C9}|SIMS.Test\\SIMS.Test.csproj|d:\\apdp\\sims\\sims.test\\coursescontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{33A349D6-9473-4894-877C-A73DE22378C9}|SIMS.Test\\SIMS.Test.csproj|solutionrelative:sims.test\\coursescontrollertest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\databasecontext\\simdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\databasecontext\\simdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\interfaces\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\interfaces\\iuserrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\repositories\\userrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\controllers\\logincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\controllers\\logincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\controllers\\facultycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\controllers\\facultycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\controllers\\coursescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\controllers\\coursescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 1,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedHeight": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "LoginController.cs",
+              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Controllers\\LoginController.cs",
+              "RelativeDocumentMoniker": "SIMS\\Controllers\\LoginController.cs",
+              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Controllers\\LoginController.cs",
+              "RelativeToolTip": "SIMS\\Controllers\\LoginController.cs",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAuwBoAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-08T01:00:15.093Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "UserRepository.cs",
+              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Repositories\\UserRepository.cs",
+              "RelativeDocumentMoniker": "SIMS\\Repositories\\UserRepository.cs",
+              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Repositories\\UserRepository.cs",
+              "RelativeToolTip": "SIMS\\Repositories\\UserRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T19:46:41.341Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "IUserRepository.cs",
+              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Interfaces\\IUserRepository.cs",
+              "RelativeDocumentMoniker": "SIMS\\Interfaces\\IUserRepository.cs",
+              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Interfaces\\IUserRepository.cs",
+              "RelativeToolTip": "SIMS\\Interfaces\\IUserRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T19:46:15.944Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "SimDbContext.cs",
+              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\DatabaseContext\\SimDbContext.cs",
+              "RelativeDocumentMoniker": "SIMS\\DatabaseContext\\SimDbContext.cs",
+              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\DatabaseContext\\SimDbContext.cs",
+              "RelativeToolTip": "SIMS\\DatabaseContext\\SimDbContext.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAxwAsAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T15:55:57.432Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CoursesControllerTest.cs",
+              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS.Test\\CoursesControllerTest.cs",
+              "RelativeDocumentMoniker": "SIMS.Test\\CoursesControllerTest.cs",
+              "ToolTip": "D:\\APDP\\SIMS\\SIMS.Test\\CoursesControllerTest.cs",
+              "RelativeToolTip": "SIMS.Test\\CoursesControllerTest.cs",
+              "ViewState": "AgIAAIYAAACANzMzM5MwwB0AAABvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T15:48:34.839Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "FacultyController.cs",
+              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Controllers\\FacultyController.cs",
+              "RelativeDocumentMoniker": "SIMS\\Controllers\\FacultyController.cs",
+              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Controllers\\FacultyController.cs",
+              "RelativeToolTip": "SIMS\\Controllers\\FacultyController.cs",
+              "ViewState": "AgIAANMAAAAAAAAAAADwvxQAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T14:34:59.301Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "CoursesController.cs",
+              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Controllers\\CoursesController.cs",
+              "RelativeDocumentMoniker": "SIMS\\Controllers\\CoursesController.cs",
+              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Controllers\\CoursesController.cs",
+              "RelativeToolTip": "SIMS\\Controllers\\CoursesController.cs",
+              "ViewState": "AgIAANIAAAAAPjMzMzMgwNsAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T14:34:40.186Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model IEnumerable<SIMS.DatabaseContext.Entities.Course>
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    @* Dùng layout chung *@
+
+    ViewData["title"] = "Assigned Courses";
+    @* Tiêu đề của trang *@
+
+    ViewData["breadcrumb"] = "Faculty";
+    @* Breadcrumb chính *@
+
+    ViewData["breadcrumb_item"] = "Assigned Courses";
+    @* Breadcrumb con *@
+
+    int facultyId = (int)ViewBag.FacultyId; 
+    @* Lấy facultyId từ ViewBag do controller gửi xuống *@
+}
+
+@* ====================== TRƯỜNG HỢP KHÔNG CÓ MÔN HỌC ====================== *@
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No courses assigned to this faculty.</div>
+    @* Nếu danh sách rỗng → giảng viên chưa được phân công môn nào *@
+}
+else
+{
+    @* ====================== BẢNG MÔN HỌC ĐƯỢC GIAO ====================== *@
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Course ID</th>
+                <th>Course Name</th>
+                <th>Class</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var course in Model)
+            {
+                <tr>
+                    @* ================= HIỂN THỊ THÔNG TIN MÔN HỌC ================= *@
+                    <td>@course.CourseId</td>
+                    <td>@course.CourseName</td>
+                    <td>@course.Class</td>
+
+                    <td>
+                        @* Hiển thị ngày bắt đầu và kết thúc. Nếu null thì hiện '-' *@
+                        @(course.StartDate?.ToShortDateString() ?? "-")
+                        - @(course.EndDate?.ToShortDateString() ?? "-")
+                    </td>
+
+                    <td>
+                        @* Nút View Schedule (thay cho RecordAttendance cũ) *@
+                        <a asp-controller="Schedules" asp-action="Index" asp-route-courseId="@course.CourseId"
+                           class="btn btn-primary btn-sm">
+                           Schedule
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

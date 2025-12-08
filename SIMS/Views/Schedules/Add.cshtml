@@ -1,0 +1,87 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model SIMS.DatabaseContext.Entities.Schedule
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    ViewData["title"] = "Add Schedule";
+    ViewData["breadcrumb"] = "Schedules";
+    ViewData["breadcrumb_item"] = "Add Schedules";
+}
+
+@*
+    Form gửi dữ liệu POST đến action Add (SchedulesController).
+    Dữ liệu gửi lên: FacultyId, CourseId, Date, Time, Room.
+*@
+<form asp-action="Add" method="post">
+
+    @*
+        Dropdown chọn giảng viên.
+        ViewBag.Faculties được truyền từ controller với dạng List<SelectListItem>.
+    *@
+    <div class="mb-3">
+        <label>Faculty</label>
+        <select name="FacultyId" class="form-select" required>
+            <option value="">-- select faculty --</option>
+
+            @foreach (var f in (List<SelectListItem>)ViewBag.Faculties)
+            {
+                @* Mỗi dòng trong dropdown: value = FacultyId, text = FacultyName *@
+                <option value="@f.Value">@f.Text</option>
+            }
+        </select>
+    </div>
+
+    @*
+        Dropdown chọn Course.
+        ViewBag.Courses chứa danh sách môn học dạng SelectListItem.
+    *@
+    <div class="mb-3">
+        <label>Course</label>
+        <select name="CourseId" class="form-select" required>
+            <option value="">-- select course --</option>
+
+            @foreach (var c in (List<SelectListItem>)ViewBag.Courses)
+            {
+                <option value="@c.Value">@c.Text</option>
+            }
+        </select>
+    </div>
+
+    @*
+        Input ngày học.
+        Thuộc tính name="Date" khớp với model Schedule.Date.
+    *@
+    <div class="mb-3">
+        <label>Date</label>
+        <input type="date" name="Date" class="form-control" required />
+    </div>
+
+    @*
+        Input giờ học.
+        Người dùng nhập thủ công, ví dụ: 08:00 - 10:00.
+        asp-validation-for dùng để hiển thị lỗi validate nếu có.
+    *@
+    <div class="mb-3">
+        <label>Time</label>
+        <input type="text" name="Time" class="form-control" placeholder="08:00 - 10:00" required />
+        <span asp-validation-for="Time" class="text-danger"></span>
+    </div>
+
+    @*
+        Phòng học.
+        Người dùng nhập tên phòng: A101, B204,...
+    *@
+    <div class="mb-3">
+        <label>Room</label>
+        <input type="text" name="Room" class="form-control" placeholder="A101" required />
+    </div>
+
+    @* Nút lưu *@
+    <button class="btn btn-primary">Save</button>
+
+    @* Quay lại danh sách schedule *@
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+
+</form>

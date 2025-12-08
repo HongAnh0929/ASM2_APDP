@@ -1,0 +1,103 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model IEnumerable<SIMS.DatabaseContext.Entities.Faculty>
+
+@{
+    // Sử dụng layout chung cho toàn hệ thống
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+
+    // Truyền title và breadcrumb sang layout
+    ViewData["title"] = "Faculty List";
+    ViewData["breadcrumb"] = "Faculty";
+    ViewData["breadcrumb_item"] = "List of Faculty";
+}
+
+@* Hiển thị thông báo sau khi thực hiện Add/Edit/Delete *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+@* Form Search dùng GET gửi về action Index *@
+<form method="get" asp-action="Index" class="mb-3">
+    <div class="input-group">
+        @* Hiển thị lại từ khóa đã search *@
+        <input type="text" name="search" value="@ViewBag.SearchTerm"
+               class="form-control" placeholder="Search faculties..." />
+
+        <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-light">
+        <tr>
+            @* Các cột dữ liệu chính *@
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Phone</th>
+
+            @* Chỉ Admin mới xem được User + Actions + Courses *@
+            @if (User.IsInRole("Admin"))
+            {
+                <th>User</th>        @* username liên kết với faculty *@
+                <th>Actions</th>     @* Cột chứa Edit/Delete *@
+                <th>Courses</th>     @* Xem danh sách môn giảng dạy *@
+            }
+        </tr>
+    </thead>
+
+    <tbody>
+        @* Nếu danh sách rỗng *@
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="8" class="text-center">No faculty found.</td>
+            </tr>
+        }
+        else
+        {
+            @* Lặp từng giảng viên trong danh sách *@
+            @foreach (var f in Model)
+            {
+                <tr>
+                    <td>@f.FacultyId</td>      @* PK *@
+                    <td>@f.FacultyName</td>
+                    <td>@f.Email</td>
+                    <td>@f.Department</td>
+                    <td>@f.Phone</td>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <td>@f.User?.Username</td>
+                        @* ?. để tránh lỗi nếu Faculty chưa có User *@
+
+                        <td>
+                            @* Nút Edit, truyền id qua route *@
+                            <a asp-action="Edit" asp-route-id="@f.FacultyId"
+                               class="btn btn-warning btn-sm">Edit</a>
+
+                            @* Nút Delete, có confirm *@
+                            <a asp-action="Delete" asp-route-id="@f.FacultyId"
+                               onclick="return confirm('Are you sure you want to delete this faculty?');"
+                               class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+
+                        <td>
+                            @* Xem các môn mà giảng viên này dạy *@
+                            <a asp-action="AssignedCourses" asp-route-id="@f.FacultyId"
+                               class="btn btn-info btn-sm">Courses</a>
+                        </td>
+                    }
+                </tr>
+            }
+        }
+    </tbody>
+</table>

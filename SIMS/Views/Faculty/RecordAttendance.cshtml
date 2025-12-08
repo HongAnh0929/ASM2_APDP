@@ -1,0 +1,70 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model IEnumerable<SIMS.DatabaseContext.Entities.Student>
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    // Truyền title và breadcrumb sang layout
+    ViewData["title"] = "Record Attendance";
+    ViewData["breadcrumb"] = "Faculty";
+
+    // Nhận dữ liệu từ Controller qua ViewBag
+    int courseId = ViewBag.CourseId;      @* ID của môn học *@
+    string courseName = ViewBag.CourseName;  @* Tên môn học *@
+    string className = ViewBag.ClassName;    @* Tên lớp *@
+}
+
+<h2>Record Attendance for @courseName (@className)</h2>
+
+@*
+    Form gửi dữ liệu điểm danh lên action RecordAttendanceSubmit (POST)
+    Trong form có:
+    - courseId: để biết đang điểm danh môn nào
+    - date: ngày điểm danh (tự động lấy ngày hiện tại)
+*@
+<form asp-action="RecordAttendanceSubmit" method="post">
+
+    @* Ẩn courseId để gửi lên server *@
+    <input type="hidden" name="courseId" value="@courseId" />
+
+    @* Ẩn ngày điểm danh, format yyyy-MM-dd *@
+    <input type="hidden" name="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Student ID</th>      @* Mã sinh viên *@
+                <th>Student Name</th>    @* Họ tên *@
+                <th>Present</th>         @* Checkbox đánh dấu có mặt *@
+            </tr>
+        </thead>
+
+        <tbody>
+            @*
+                Lặp qua toàn bộ sinh viên trong lớp (Model)
+                Mỗi dòng là một sinh viên
+                Checkbox có name="presentStudentIds" → server nhận list ID sinh viên có mặt
+            *@
+            @foreach (var student in Model)
+            {
+                <tr>
+                    <td>@student.StudentId</td>
+                    <td>@student.FullName</td>
+
+                    <td>
+                        @*
+                            Checkbox:
+                            - name="presentStudentIds" → gửi nhiều ID dạng list
+                            - value = ID sinh viên
+                        *@
+                        <input type="checkbox" name="presentStudentIds" value="@student.StudentId" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* Nút lưu điểm danh *@
+    <button type="submit" class="btn btn-primary">Save Attendance</button>
+</form>

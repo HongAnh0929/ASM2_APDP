@@ -1,0 +1,103 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@*
+    Đây là phần comment Razor, không ảnh hưởng đến code.
+    Trang này dùng để hiển thị danh sách sinh viên.
+*@
+@model IEnumerable<SIMS.DatabaseContext.Entities.Student>  
+@* View nhận vào danh sách Student *@
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml"; @* Layout chung *@
+    ViewData["title"] = "Students List";          @* Tiêu đề trang *@
+    ViewData["breadcrumb"] = "Students";          @* Breadcrumb chính *@
+    ViewData["breadcrumb_item"] = "List of Students"; @* Mục con của breadcrumb *@
+}
+
+@* Hiện thông báo nếu có *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>  @* báo thành công *@
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>  @* báo lỗi *@
+}
+
+@* Form tìm kiếm *@
+<form method="get" asp-action="Index" class="mb-3">
+    <div class="input-group">
+        @* Ô nhập search, lưu lại giá trị cũ nếu có *@
+        <input type="text" name="search" value="@(ViewBag.SearchTerm ?? "")" 
+               class="form-control" placeholder="Search students..." />
+
+        @* Nút submit *@
+        <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+</form>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>          @* StudentId *@
+            <th>Name</th>        @* FullName *@
+            <th>Gender</th>      @* Giới tính *@
+            <th>Email</th>
+            <th>Major</th>       @* Chuyên ngành *@
+            <th>Class</th>       @* Lớp học *@
+            <th>Standing</th>    @* Học lực *@
+
+            @* Chỉ Admin mới được thấy thêm các cột này *@
+            @if (User.IsInRole("Admin"))
+            {
+                <th>GPA</th>      @* Điểm GPA chỉ admin xem *@
+                <th>User</th>    @* Username liên kết với Student *@
+                <th>Actions</th> @* Edit + Delete *@
+            }
+        </tr>
+    </thead>
+    <tbody>
+
+        @* Nếu danh sách rỗng, hiển thị thông báo *@
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="9" class="text-center">No students found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var s in Model)  @* Duyệt qua từng sinh viên *@
+            {
+                <tr>
+                    <td>@s.StudentId</td>
+                    <td>@s.FullName</td>
+                    <td>@s.Gender</td>
+                    <td>@s.Email</td>
+                    <td>@s.Major</td>
+                    <td>@s.Class</td>
+                    <td>@s.AcademicStanding</td>
+
+                    @* Nếu user đăng nhập là Admin *@
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <td>@s.GPA</td>  @* GPA chỉ admin xem *@
+                        <td>@s.User?.Username</td>  @* Username thuộc User entity *@
+
+                        <td>
+                            @* Link sửa sinh viên *@
+                            <a asp-action="Edit" asp-route-id="@s.StudentId" 
+                               class="btn btn-warning btn-sm">Edit</a>
+
+                            @* Link xoá sinh viên với confirm *@
+                            <a asp-action="Delete" asp-route-id="@s.StudentId" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Delete?')">Delete</a>
+                        </td>
+                    }
+                </tr>
+            }
+        }
+    </tbody>
+</table>

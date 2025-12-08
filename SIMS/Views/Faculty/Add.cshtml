@@ -1,0 +1,97 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model SIMS.DatabaseContext.Entities.Faculty
+@* 
+    View nhận vào model Faculty — chứa thông tin giảng viên mà ta sẽ thêm vào DB.
+*@
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    @* Dùng layout chính của hệ thống *@
+
+    ViewData["title"] = "Add Faculty";
+    @* Tiêu đề của trang *@
+
+    ViewData["breadcrumb"] = "Faculty";
+    @* Breadcrumb chính *@
+
+    ViewData["breadcrumb_item"] = "Add New Faculty";
+    @* Breadcrumb con *@
+}
+
+@* ===================== HIỂN THỊ MESSAGE SAU KHI SUBMIT ===================== *@
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    @* Hiển thị khi thêm thành công *@
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    @* Hiển thị khi thêm thất bại *@
+}
+
+@* ============================= FORM ADD FACULTY ============================= *@
+<form asp-action="Add" method="post">
+    @* Gửi request POST đến action Add của FacultyController *@
+
+    <div class="form-group">
+        <label asp-for="FacultyName"></label>
+        <input asp-for="FacultyName" class="form-control" />
+        <span asp-validation-for="FacultyName" class="text-danger"></span>
+        @* Nhập tên giảng viên + hiển thị lỗi validation *@
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+        @* Nhập email giảng viên *@
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Department"></label>
+        <input asp-for="Department" class="form-control" />
+        <span asp-validation-for="Department" class="text-danger"></span>
+        @* Nhập bộ môn (khoa) *@
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Phone"></label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+        @* Nhập số điện thoại *@
+    </div>
+
+    <div class="form-group">
+        <label asp-for="HireDate"></label>
+        <input asp-for="HireDate" type="date" class="form-control" />
+        <span asp-validation-for="HireDate" class="text-danger"></span>
+        @* Ngày tuyển dụng (dạng date) *@
+    </div>
+
+    <hr />
+
+    @* ============================= LOGIN INFO ============================= *@
+    <h4>Login Info</h4>
+
+    @* Dữ liệu này không thuộc model Faculty, nên dùng input name bình thường. *@
+
+    <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="Username" class="form-control" placeholder="Enter username" />
+        @* Username để tạo tài khoản cho giảng viên *@
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input type="text" name="Password" class="form-control" placeholder="Enter password" />
+        @* Password cũng gửi về controller thông qua Request.Form hoặc parameter *@
+    </div>
+
+    <button type="submit" class="btn btn-success mt-2">Add</button>
+    @* Nút submit form *@
+</form>

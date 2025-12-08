@@ -1,0 +1,110 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model dynamic
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml"; // Giao diện layout chính
+    ViewData["Title"] = "Admin Dashboard";      // Tiêu đề trang
+    ViewData["breadcrumb"] = "Dashboard";        // Breadcrumb chính
+    ViewData["breadcrumb_item"] = "Home";       // Mục breadcrumb con
+}
+
+<div class="row">
+    <!-- ===== CARD: Tổng số học sinh ===== -->
+    <div class="col-md-4">
+        <div class="card shadow p-3">
+            <h5>Total Students</h5>
+            <h3>@ViewBag.TotalStudents <!-- Lấy dữ liệu từ controller --></h3>
+        </div>
+    </div>
+
+    <!-- ===== CARD: Tổng số giảng viên ===== -->
+    <div class="col-md-4">
+        <div class="card shadow p-3">
+            <h5>Total Faculties</h5>
+            <h3>@ViewBag.TotalFaculty</h3>
+        </div>
+    </div>
+
+    <!-- ===== CARD: Tổng số khóa học ===== -->
+    <div class="col-md-4">
+        <div class="card shadow p-3">
+            <h5>Total Courses</h5>
+            <h3>@ViewBag.TotalCourses</h3>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<div class="row mt-4">
+    <!-- ===== BIỂU ĐỒ 1: Courses by Faculty ===== -->
+    <div class="col-md-6">
+        <h4 class="text-center">Courses by Faculty</h4>
+        <div class="card shadow p-3">
+            <!-- Canvas để Chart.js vẽ biểu đồ bar -->
+            <canvas id="facultyChart" height="180"></canvas>
+        </div>
+    </div>
+
+    <!-- ===== BIỂU ĐỒ 2: Students by Class ===== -->
+    <div class="col-md-6">
+        <h4 class="text-center">Students by Class</h4>
+        <div class="card shadow p-3">
+            <!-- Canvas để Chart.js vẽ doughnut chart -->
+            <canvas id="studentChart" height="180"></canvas>
+        </div>
+    </div>
+</div>
+
+
+<!-- Nạp thư viện Chart.js để vẽ biểu đồ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // ================= BAR CHART: Courses by Faculty =================
+    // Nhận danh sách faculty từ backend -> Json.Serialize chuyển thành JSON
+    var facultyNames = @Html.Raw(Json.Serialize(ViewBag.FacultyNames));       // Tên giảng viên
+    var courseCounts = @Html.Raw(Json.Serialize(ViewBag.CourseCounts));       // Số khóa học của từng giảng viên
+
+    // Khởi tạo biểu đồ Bar
+    new Chart(document.getElementById('facultyChart'), {
+        type: 'bar',          // Loại biểu đồ
+        data: {
+            labels: facultyNames, // Trục X
+            datasets: [{
+                label: 'Courses',   // Tên nhóm dữ liệu
+                data: courseCounts, // Trục Y
+                backgroundColor: '#4e73df' // Màu cột
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true } // Trục Y bắt đầu từ 0
+            }
+        }
+    });
+
+    // ================= DOUGHNUT CHART: Students by Class =================
+    var classNames = @Html.Raw(Json.Serialize(ViewBag.ClassNames));   // Danh sách lớp
+    var studentCounts = @Html.Raw(Json.Serialize(ViewBag.StudentCounts)); // Số học sinh mỗi lớp
+
+    new Chart(document.getElementById('studentChart'), {
+        type: 'doughnut',  // Loại biểu đồ
+        data: {
+            labels: classNames,
+            datasets: [{
+                data: studentCounts,     // Dữ liệu biểu đồ
+                backgroundColor: [       // Nhiều màu cho từng phần
+                    '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>

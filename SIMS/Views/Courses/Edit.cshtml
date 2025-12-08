@@ -1,0 +1,83 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model SIMS.DatabaseContext.Entities.Course
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml"; // Layout chung của hệ thống
+    ViewData["title"] = "Edit Course"; // Tiêu đề trang
+    ViewData["breadcrumb"] = "Courses"; // Breadcrumb chính
+    ViewData["breadcrumb_item"] = "Edit Course"; // Breadcrumb phụ
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div> @* Hiển thị lỗi nếu có *@
+}
+
+<form asp-action="Edit" method="post">
+    @* Form gửi đến action Edit trong CoursesController *@
+
+    <input type="hidden" name="CourseId" value="@Model.CourseId" /> @* Ẩn CourseId để server biết đang sửa khóa học nào *@
+
+    <!-- COURSE NAME -->
+    <div class="form-group mb-3">
+        <label for="CourseName">Course Name</label>
+        <input type="text" name="CourseName" class="form-control" value="@Model.CourseName" required />
+        @* Input nhập tên khóa học - lấy giá trị cũ từ Model *@
+    </div>
+
+    <!-- CREDITS -->
+    <div class="form-group mb-3">
+        <label for="Credits">Credits</label>
+        <input type="number" name="Credits" class="form-control" value="@Model.Credits" required />
+        @* Số tín chỉ - lấy từ Model *@
+    </div>
+
+    <!-- CLASS -->
+    <div class="form-group mb-3">
+        <label for="Class">Class</label>
+        <input type="text" name="Class" class="form-control" value="@Model.Class" required />
+        @* Lớp - lấy từ Model *@
+    </div>
+
+    <!-- START DATE -->
+    <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" name="StartDate" class="form-control" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
+        @* Ngày bắt đầu - format theo chuẩn HTML date *@
+    </div>
+
+    <!-- END DATE -->
+    <div class="form-group">
+        <label>End Date</label>
+        <input type="date" name="EndDate" class="form-control" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
+        @* Ngày kết thúc *@
+    </div>
+
+
+    <!-- FACULTY DROPDOWN -->
+    <div class="form-group mb-3">
+        <label for="FacultyId">Faculty</label>
+        <select name="FacultyId" class="form-select" required>
+            @* ViewBag.Faculties là SelectList đã được Controller chuẩn bị *@
+            @foreach (var f in ViewBag.Faculties)
+            {
+                if (f.Selected)
+                {
+                    <option value="@f.Value" selected="selected">@f.Text</option>
+                }
+                else
+                {
+                    <option value="@f.Value">@f.Text</option>
+                }
+            }
+        </select>
+        @* Dropdown chọn giảng viên - tự động đánh dấu selected đúng Faculty hiện tại *@
+    </div>
+
+
+    <!-- BUTTONS -->
+    <button type="submit" class="btn btn-primary">Update</button> @* Nút cập nhật *@
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a> @* Quay về danh sách *@
+</form>

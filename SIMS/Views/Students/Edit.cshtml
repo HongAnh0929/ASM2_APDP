@@ -1,0 +1,90 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@*
+    View chỉnh sửa thông tin Student.
+    Dữ liệu được load từ StudentController.Edit (GET).
+    Sau khi chỉnh sửa xong → gửi form sang Edit (POST).
+*@
+@model SIMS.DatabaseContext.Entities.Student   // Model gửi vào là Student
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";        // Dùng layout chính
+    ViewData["title"] = "Edit Student";                  // Tiêu đề trang
+    ViewData["breadcrumb"] = "Students";                 // Breadcrumb
+    ViewData["breadcrumb_item"] = "Edit Student";
+}
+
+<!-- Nếu có thông báo thành công từ TempData -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<!-- Nếu có thông báo lỗi từ TempData -->
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<!-- Form gửi đến StudentController.Edit (POST) -->
+<form asp-action="Edit" method="post">
+
+    <!-- Hidden field chứa StudentId để biết đang sửa student nào -->
+    <input type="hidden" asp-for="StudentId" />
+
+    <!-- FULL NAME -->
+    <!-- asp-for chính là binding trực tiếp đến Model.FullName -->
+    <div class="form-group">
+        <label asp-for="FullName"></label>
+        <input asp-for="FullName" class="form-control" />
+        <!-- ModelState errors tự hiển thị thông qua validation -->
+    </div>
+
+    <!-- EMAIL -->
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+
+    <!-- MAJOR -->
+    <div class="form-group">
+        <label asp-for="Major"></label>
+        <input asp-for="Major" class="form-control" />
+    </div>
+
+    <!-- GENDER -->
+    <div class="form-group">
+        <label asp-for="Gender"></label>
+        <input asp-for="Gender" class="form-control" />
+    </div>
+
+    <!-- DOB -->
+    <div class="form-group">
+        <label asp-for="Dob"></label>
+        <input asp-for="Dob" type="date" class="form-control" />
+    </div>
+
+    <!-- CLASS -->
+    <div class="form-group">
+        <label asp-for="Class"></label>
+        <input asp-for="Class" class="form-control" />
+    </div>
+
+    <!-- GPA -->
+    <div class="form-group">
+        <label asp-for="GPA"></label>
+        <input asp-for="GPA" class="form-control" />
+    </div>
+
+    <!-- ACADEMIC STANDING -->
+    <div class="form-group">
+        <label asp-for="AcademicStanding"></label>
+        <input asp-for="AcademicStanding" class="form-control" />
+    </div>
+
+    <!-- NÚT SUBMIT -->
+    <button type="submit" class="btn btn-primary mt-2">
+        Update Student
+    </button>
+</form>

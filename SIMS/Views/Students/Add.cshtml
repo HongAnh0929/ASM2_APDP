@@ -1,0 +1,104 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@*
+    View này dùng để thêm mới một Student.
+    Model truyền vào là Student, nhưng thực tế form dùng name để bind thành Student mới và User mới.
+*@
+@model SIMS.DatabaseContext.Entities.Student
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";         // Layout dùng chung
+    ViewData["title"] = "Add new Students page";          // Tiêu đề trang
+    ViewData["breadcrumb"] = "Students";                  // Đường dẫn breadcrumb
+    ViewData["breadcrumb_item"] = "Add a new students";   // Mục breadcrumb hiện tại
+}
+
+<!-- Form gửi dữ liệu đến Action Add (POST) -->
+<form asp-action="Add" method="post">
+
+    <!-- Nhập Full Name -> Controller sẽ lấy từ form["FullName"] -->
+    <div class="form-group">
+        <label>Full Name</label>
+        <input name="FullName" class="form-control" required />
+        <!-- Không dùng asp-for -> form tự nhận dữ liệu từ name -->
+    </div>
+
+    <!-- Nhập Email -->
+    <div class="form-group">
+        <label>Email</label>
+        <input name="Email" type="email" class="form-control" required />
+    </div>
+
+    <!-- Nhập Major -->
+    <div class="form-group">
+        <label>Major</label>
+        <input name="Major" class="form-control" />
+    </div>
+
+    <!-- Nhập Gender -->
+    <div class="form-group">
+        <label>Gender</label>
+        <input name="Gender" class="form-control" />
+    </div>
+
+    <!-- Ngày sinh -->
+    <div class="form-group">
+        <label>Date of Birth</label>
+        <input name="Dob" type="date" class="form-control" />
+    </div>
+
+    <!-- Lớp -->
+    <div class="form-group">
+        <label>Class</label>
+        <input name="Class" class="form-control" />
+    </div>
+
+    <!-- GPA -->
+    <div class="form-group">
+        <label>GPA</label>
+        <input name="GPA" class="form-control" />
+    </div>
+
+    <!-- Academic Standing -->
+    <div class="form-group">
+        <label>Academic Standing</label>
+        <input name="AcademicStanding" class="form-control" />
+    </div>
+
+    <hr />
+
+    <!-- --------------------- -->
+    <!-- LOGIN INFORMATION     -->
+    <!-- --------------------- -->
+    <!-- Khi tạo Student mới → đồng thời tạo User -->
+    <h4>Login Info</h4>
+
+    <!-- Tạo username cho User -->
+    <div class="form-group">
+        <label>Username</label>
+        <input name="Username" class="form-control" required />
+    </div>
+
+    <!-- Tạo password cho User -->
+    <div class="form-group">
+        <label>Password</label>
+        <input name="Password" type="password" class="form-control" required />
+    </div>
+
+    <!-- Nút gửi form -->
+    <button type="submit" class="btn btn-primary mt-3">Add Student</button>
+</form>
+
+
+<!-- HIỂN THỊ THÔNG BÁO THÀNH CÔNG -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<!-- HIỂN THỊ THÔNG BÁO LỖI -->
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}

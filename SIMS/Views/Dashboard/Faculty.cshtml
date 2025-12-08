@@ -1,0 +1,110 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model List<SIMS.DatabaseContext.Entities.Course>
+@* View nhận vào Model là danh sách các Course mà giảng viên được phân công *@
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    @* Sử dụng layout chung của hệ thống *@
+
+    ViewData["Title"] = "Faculty Dashboard";
+    @* Tiêu đề trang *@
+
+    ViewData["breadcrumb"] = "Dashboard";
+    @* Breadcrumb chính *@
+
+    ViewData["breadcrumb_item"] = "Home";
+    @* Breadcrumb phụ *@
+
+    var today = DateTime.Today;
+
+    var assigned = ViewBag.AssignedCourses as List<SIMS.DatabaseContext.Entities.Course>;
+    @* Lấy danh sách môn học được phân công (nếu controller truyền vào) *@
+
+    var schedule = ViewBag.TodaySchedule as List<dynamic>;
+    @* Lấy lịch dạy trong ngày — thường là dữ liệu dynamic do Select ẩn danh *@
+}
+
+@* ------------------------ Bảng Assigned Courses ------------------------ *@
+
+<table class="table table-bordered text-center">
+    <h4 class="mb-3">Assigned Courses</h4>
+
+    <thead>
+        <tr>
+            <th>Course</th>
+            <th>Class</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @* Kiểm tra xem Model có dữ liệu không *@
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (var c in Model)  @* Duyệt từng môn học *@
+            {
+                <tr>
+                    <td>@c.CourseName</td> @* Tên môn *@
+                    <td>@c.Class</td> @* Lớp học *@
+
+                    <td>
+                        @(c.StartDate.HasValue? c.StartDate.Value.ToString("dd/MM/yyyy"): "—")
+                        @* Nếu có ngày bắt đầu → format dd/MM/yyyy.
+                           Nếu null → in dấu gạch *@
+                    </td>
+
+                    <td>
+                        @(c.EndDate.HasValue ? c.EndDate.Value.ToString("dd/MM/yyyy"): "—")
+                @* Tương tự phần StartDate *@
+            </td>
+        </tr>
+                }
+        }
+        else
+        {
+            <tr><td colspan="4">No assigned courses</td></tr>
+            @* Không có môn học nào được phân công *@
+        }
+    </tbody>
+</table>
+
+@* -------------------------- Today Schedule ----------------------------- *@
+
+<div class="card shadow-sm p-3 mb-4">
+    <h4 class="mb-3">Today's Schedule - @today.ToString("dd/MM/yyyy")</h4>
+
+    <table class="table table-bordered text-center">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Course</th>
+                <th>Room</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @* Kiểm tra xem có lịch dạy trong ngày không *@
+            @if (ViewBag.TodaySchedule != null && ViewBag.TodaySchedule.Count > 0)
+            {
+                foreach (var s in ViewBag.TodaySchedule) @* Duyệt từng tiết học *@
+                {
+                    <tr>
+                        <td>@s.Time</td> @* Giờ học *@
+                        <td>@s.Course.CourseName</td> @* Tên môn (Loaded từ navigation property) *@
+                        <td>@s.Room</td> @* Phòng học *@
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="3">No schedule for today</td>
+                    @* Không có tiết dạy nào hôm nay *@
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

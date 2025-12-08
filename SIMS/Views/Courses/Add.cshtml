@@ -1,0 +1,64 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model SIMS.DatabaseContext.Entities.Course
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml"; // Sử dụng layout tổng
+    ViewData["title"] = "Add new Courses page"; // Tiêu đề trang
+    ViewData["breadcrumb"] = "Courses"; // Breadcrumb chính
+    ViewData["breadcrumb_item"] = "add a new courses"; // Breadcrumb phụ
+}
+
+@* Hiển thị thông báo thành công *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+@* Form gửi dữ liệu lên action AddCourse trong CoursesController *@
+<form method="post" asp-action="AddCourse">
+
+    @* Nhập tên khóa học *@
+    <div class="mb-3">
+        <label for="CourseName" class="form-label">Course Name</label>
+        <input type="text" class="form-control" id="CourseName" name="CourseName" />
+    </div>
+
+    @* Nhập số tín chỉ *@
+    <div class="form-group">
+        <label asp-for="Credits"></label>
+        <input asp-for="Credits" type="number" class="form-control" />
+        <span asp-validation-for="Credits" class="text-danger"></span>
+    </div>
+
+    @* Nhập tên lớp *@
+    <div class="form-group">
+        <label asp-for="Class"></label>
+        <input asp-for="Class" class="form-control" />
+        <span asp-validation-for="Class" class="text-danger"></span>
+    </div>
+
+    @* Ngày bắt đầu *@
+    <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" name="StartDate" class="form-control" required />
+    </div>
+
+    @* Ngày kết thúc *@
+    <div class="form-group">
+        <label>End Date</label>
+        <input type="date" name="EndDate" class="form-control" required />
+    </div>
+
+    @* Dropdown chọn giảng viên (Faculty) *@
+    <div class="mb-3">
+        <label asp-for="FacultyId" class="form-label">Faculty</label>
+        <select asp-for="FacultyId" class="form-select" asp-items="ViewBag.Faculties">
+            <option value="">-- Select Faculty --</option>
+        </select>
+        <span asp-validation-for="FacultyId" class="text-danger"></span>
+    </div>
+
+    @* Nút submit *@
+    <button type="submit" class="btn btn-primary">Add Course</button>
+</form>

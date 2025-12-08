@@ -1,0 +1,109 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";   // Dùng layout chính
+    ViewData["Title"] = "Search Results";          // Tiêu đề trang
+}
+
+<!-- Hiển thị từ khóa tìm kiếm -->
+<h4>Search Results for "@ViewBag.Query"</h4>
+
+<!-- ========================= -->
+<!--       STUDENTS LIST       -->
+<!-- ========================= -->
+
+<h5>Students</h5>
+
+@* Kiểm tra nếu danh sách Student có phần tử *@
+@if (((List<SIMS.DatabaseContext.Entities.Student>)ViewBag.Students).Count > 0)
+{
+    <table class="table table-bordered">
+        <tr>
+            <th>Full Name</th>
+            <th>Class</th>
+            <th>Email</th>
+        </tr>
+
+        @* Lặp qua từng Student trong danh sách *@
+        @foreach (var s in (List<SIMS.DatabaseContext.Entities.Student>)ViewBag.Students)
+        {
+            <tr>
+                <td>@s.FullName</td>   <!-- Tên đầy đủ -->
+                <td>@s.Class</td>      <!-- Lớp -->
+                <td>@s.Email</td>      <!-- Email -->
+            </tr>
+        }
+    </table>
+}
+else
+{
+    <!-- Nếu không có sinh viên nào -->
+    <p>No students found.</p>
+}
+
+<!-- ========================= -->
+<!--         COURSES LIST      -->
+<!-- ========================= -->
+
+<h5>Courses</h5>
+
+@* Kiểm tra nếu danh sách Course có phần tử *@
+@if (((List<SIMS.DatabaseContext.Entities.Course>)ViewBag.Courses).Count > 0)
+{
+    <table class="table table-bordered">
+        <tr>
+            <th>Course Name</th>
+            <th>Class</th>
+            <th>Faculty</th>
+        </tr>
+
+        @foreach (var c in (List<SIMS.DatabaseContext.Entities.Course>)ViewBag.Courses)
+        {
+            <tr>
+                <td>@c.CourseName</td>            <!-- Tên khóa học -->
+                <td>@c.Class</td>                 <!-- Lớp -->
+                <td>@c.Faculty.FacultyName</td>   <!-- Lấy tên giảng viên qua Navigation Property -->
+            </tr>
+        }
+    </table>
+}
+else
+{
+    <p>No courses found.</p>
+}
+
+<!-- ========================= -->
+<!--        SCHEDULES LIST     -->
+<!-- ========================= -->
+
+<h5>Schedules</h5>
+
+@* Kiểm tra nếu danh sách Schedule có phần tử *@
+@if (((List<SIMS.DatabaseContext.Entities.Schedule>)ViewBag.Schedules).Count > 0)
+{
+    <table class="table table-bordered">
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Room</th>
+            <th>Course</th>
+            <th>Faculty</th>
+        </tr>
+
+        @foreach (var s in (List<SIMS.DatabaseContext.Entities.Schedule>)ViewBag.Schedules)
+        {
+            <tr>
+                <td>@s.Date.ToString("yyyy-MM-dd")</td>    <!-- Ngày học -->
+                <td>@s.Time</td>                           <!-- Thời gian -->
+                <td>@s.Room</td>                           <!-- Phòng học -->
+                <td>@s.Course.CourseName</td>              <!-- Tên khóa học -->
+                <td>@s.Faculty.FacultyName</td>            <!-- Tên giảng viên -->
+            </tr>
+        }
+    </table>
+}
+else
+{
+    <p>No schedules found.</p>
+}

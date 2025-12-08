@@ -1,0 +1,92 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model IEnumerable<SIMS.DatabaseContext.Entities.Schedule>
+
+@{
+    // Layout chính của website
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+
+    // Thông tin truyền sang layout để hiển thị tiêu đề và breadcrumb
+    ViewData["title"] = "Edit Schedules";
+    ViewData["breadcrumb"] = "Schedules";
+    ViewData["breadcrumb_item"] = "List of Schedules";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    // Hiển thị thông báo nếu vừa cập nhật/ thêm/ xóa thành công
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>ScheduleId</th>
+            <th>Faculty</th>
+            <th>Course</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Room</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var s in Model)   @* Lặp qua tất cả Schedule trong danh sách *@
+        {
+            <tr>
+                <!-- Hiển thị ID của Schedule -->
+                <td>@s.ScheduleId</td>
+
+                <!-- Lấy tên khoa (FacultyName) thông qua Navigation Property -->
+                <td>@s.Faculty?.FacultyName</td>
+
+                <!-- Lấy tên khóa học (CourseName) -->
+                <td>@s.Course?.CourseName</td>
+
+                <!-- Kiểm tra nếu Date chưa có giá trị (default) thì hiển thị "-" -->
+                <td>@(s.Date == default(DateTime) ? "-" : s.Date.ToString("yyyy-MM-dd"))</td>
+
+                <!-- Nếu Time rỗng thì hiển thị "-" -->
+                <td>@(string.IsNullOrEmpty(s.Time) ? "-" : s.Time)</td>
+
+                <!-- Hiển thị Room, nếu rỗng thì "-" -->
+                <td>@(string.IsNullOrEmpty(s.Room) ? "-" : s.Room)</td>
+
+                <td>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <!-- Admin: tất cả các nút -->
+                        <a class="btn btn-sm btn-warning"
+                           asp-action="Edit"
+                           asp-route-id="@s.ScheduleId">
+                            Edit
+                        </a>
+
+                        <a class="btn btn-sm btn-danger"
+                           asp-action="Delete"
+                           asp-route-id="@s.ScheduleId"
+                           onclick="return confirm('Delete?')">
+                            Delete
+                        </a>
+
+                        <a asp-controller="Faculty" asp-action="RecordAttendance" asp-route-courseId="@s.CourseId"
+                           class="btn btn-info btn-sm">
+                            Record Attendance
+                        </a>
+                    }
+                    else if (User.IsInRole("Faculty"))
+                    {
+                        <!-- Faculty: chỉ nút Record Attendance -->
+                        <a asp-controller="Faculty" asp-action="RecordAttendance" asp-route-courseId="@s.CourseId"
+                           class="btn btn-info btn-sm">
+                            Record Attendance
+                        </a>
+                    }
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
