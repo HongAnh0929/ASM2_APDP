@@ -1,6 +1,7 @@
 ﻿@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
+@using System.Security.Claims
 @{
 }
 <div id="layoutSidenav_nav">
@@ -78,7 +79,7 @@
                 </a>
                 <a class="nav-link" href="#">
                     <div class="sb-nav-link-icon"><i class="fas fa-user-shield"></i></div>
-                    Roles
+                    Role: @(User.Identity.IsAuthenticated? User.FindFirst(ClaimTypes.Role)?.Value : "Role")
                 </a>
             </div>
         </div>

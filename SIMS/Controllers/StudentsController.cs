@@ -1,104 +1,104 @@
-﻿// ===================== StudentsController Explained =====================
-// Mình đã thêm comment giải thích chi tiết từng phần trong code
-
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIMS.DatabaseContext;
 using SIMS.DatabaseContext.Entities;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace SIMS.Controllers
 {
     public class StudentsController : Controller
     {
-        private readonly SimDbContext _db; // DbContext dùng để truy cập database
+        private readonly SimDbContext _db;
 
         public StudentsController(SimDbContext db)
         {
-            _db = db; // inject DbContext
+            _db = db;
         }
 
-        // ====================== STUDENT VIEW THEIR OWN INFO =======================
+        // ====================== STUDENT VIEW OWN INFO ======================
         [Authorize(Roles = "Student")]
         public IActionResult Info()
         {
-            // Lấy UserId từ token đăng nhập
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdClaim))
                 return RedirectToAction("Login", "Account");
 
             int userId = int.Parse(userIdClaim);
 
-            // Lấy student gắn với user
             var student = _db.Students
-                .Include(s => s.User) // load thêm bảng User
+                .Include(s => s.User)
                 .FirstOrDefault(s => s.UserId == userId);
 
             return View(student);
         }
 
-        // ====================== LIST STUDENTS (SEARCH) =======================
+        // ====================== LIST + SEARCH STUDENTS ======================
         [Authorize(Roles = "Admin, Faculty, Student")]
         public async Task<IActionResult> Index(string search)
         {
-            // Query ban đầu gồm Students + User
-            var studentsQuery = _db.Students.Include(s => s.User).AsQueryable();
+            var query = _db.Students.Include(s => s.User).AsQueryable();
 
-            // Nếu có tìm kiếm
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
-
-                studentsQuery = studentsQuery.Where(s =>
+                query = query.Where(s =>
                     s.FullName.ToLower().Contains(search) ||
                     s.Email.ToLower().Contains(search) ||
                     s.Class.ToLower().Contains(search)
                 );
             }
 
-            var students = await studentsQuery.ToListAsync();
-
-            ViewBag.SearchTerm = search; // gửi lại text search ra view
-            return View(students);
+            ViewBag.SearchTerm = search;
+            return View(await query.ToListAsync());
         }
 
-        // ====================== ADD STUDENT (GET) =======================
+        // ====================== ADD STUDENT (GET) ======================
         [Authorize(Roles = "Admin")]
-        public IActionResult Add() => View(new Student()); // trả về form rỗng
+        public IActionResult Add()
+        {
+            ViewBag.Classes = _db.Courses
+                .Select(c => c.Class)
+                .Distinct()
+                .ToList();
 
+            return View();
+        }
 
-        // ====================== ADD STUDENT (POST) =======================
+        // ====================== ADD STUDENT (POST) ======================
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public IActionResult Add(string FullName, string Major, DateTime Dob,
-                                 float GPA, string AcademicStanding,
-                                 string Class, string Username,
-                                 string Password, string Email, string Gender)
+        public IActionResult Add(string FullName, string Major, string Gender, DateTime Dob, float GPA, string AcademicStanding, string Class,string Username, string Password, string Email)
         {
-            // Kiểm tra username có tồn tại chưa
+            // ❗ 1. CHECK EMAIL PHẢI LÀ @gmail.com
+            if (string.IsNullOrEmpty(Email) || !Email.EndsWith("@gmail.com"))
+            {
+                ViewBag.EmailError = "Email must be in format @gmail.com";
+                return View(); // ❌ không lưu, ❌ không redirect
+            }
+
+            // ❗ 2. CHECK USERNAME TRÙNG
             if (_db.Users.Any(u => u.Username == Username))
             {
                 TempData["ErrorMessage"] = "Username already exists!";
                 return RedirectToAction("Add");
             }
 
-            // Tạo user trước vì Student cần UserId
-            var newUser = new User
+            // 3️⃣ CREATE USER
+            var user = new User
             {
                 Username = Username,
                 Email = Email,
-                HashPassword = Password, 
-                Role = "Student"
+                HashPassword = Password, // plain text theo yêu cầu
+                Role = "Student",
+                CreateAt = DateTime.Now
             };
 
-            _db.Users.Add(newUser);
-            _db.SaveChanges(); // lưu lại để có Id mới
+            _db.Users.Add(user);
+            _db.SaveChanges(); // để có UserId
 
-            // Tạo student
+            // 4️⃣ CREATE STUDENT
             var student = new Student
             {
                 FullName = FullName,
@@ -109,51 +109,132 @@ namespace SIMS.Controllers
                 AcademicStanding = AcademicStanding,
                 Class = Class,
                 Email = Email,
-                UserId = newUser.Id // gán user
+                UserId = user.Id
             };
 
             _db.Students.Add(student);
+            _db.SaveChanges(); // để có StudentId
+
+            // 5️⃣ AUTO ENROLL COURSES THEO CLASS
+            var courses = _db.Courses
+                .Where(c => c.Class == student.Class)
+                .ToList();
+
+            foreach (var course in courses)
+            {
+                _db.Enrollments.Add(new Enrollment
+                {
+                    StudentId = student.StudentId,
+                    CourseId = course.CourseId
+                });
+            }
+
             _db.SaveChanges();
 
             TempData["SuccessMessage"] = "Student created successfully!";
             return RedirectToAction("Index");
         }
 
-        // ====================== EDIT STUDENT (GET) =======================
+        // ====================== EDIT STUDENT (GET) ======================
         [Authorize(Roles = "Admin")]
         public IActionResult Edit(int id)
         {
-            // Lấy student cần sửa kèm user
-            var student = _db.Students.Include(s => s.User)
-                                      .FirstOrDefault(s => s.StudentId == id);
+            var student = _db.Students
+                .Include(s => s.User)
+                .FirstOrDefault(s => s.StudentId == id);
 
             if (student == null) return NotFound();
+
+            ViewBag.Classes = _db.Courses
+                .Select(c => c.Class)
+                .Distinct()
+                .ToList();
+
             return View(student);
         }
 
-        // ====================== EDIT STUDENT (POST) =======================
+        // ====================== EDIT STUDENT (POST) ======================
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(Student student)
+        public IActionResult Edit(int StudentId, string FullName, string Major, string Gender, DateTime Dob, float GPA, string AcademicStanding, string Class, string Username, string Password, string Email)
         {
-            // Lấy thông tin cũ để update
-            var existing = _db.Students.Find(student.StudentId);
-            if (existing == null)
+            var student = _db.Students
+                .Include(s => s.User)
+                .FirstOrDefault(s => s.StudentId == StudentId);
+
+            if (student == null)
             {
                 TempData["ErrorMessage"] = "Student not found!";
                 return RedirectToAction("Index");
             }
 
-            // Cập nhật
-            existing.FullName = student.FullName;
-            existing.Email = student.Email;
-            existing.Gender = student.Gender;
-            existing.Major = student.Major;
-            existing.Dob = student.Dob;
-            existing.GPA = student.GPA;
-            existing.AcademicStanding = student.AcademicStanding;
-            existing.Class = student.Class;
+            // Update student info
+            student.FullName = FullName ;
+            student.Email = Email;
+            student.Gender = Gender;
+            student.Major = Major;
+            student.Dob = Dob;
+            student.GPA = GPA;
+            student.AcademicStanding = AcademicStanding;
+            student.Class = Class;
+
+            // Nếu admin nhập username mới => sửa hoặc tạo account
+            if (!string.IsNullOrEmpty(Username))
+            {
+                User user;
+                if (student.User != null)
+                {
+                    // Đã có user => cập nhật thông tin
+                    user = student.User;
+                    user.Username = Username;
+
+                    if (!string.IsNullOrEmpty(Password))
+                        user.HashPassword = Password;
+                }
+                else
+                {
+                    // Tạo user mới nếu faculty chưa có account
+                    user = new User
+                    {
+                        Username = Username,
+                        HashPassword = string.IsNullOrEmpty(Password) ? "" : Password,
+                        Role = "Student",
+                        CreateAt = DateTime.Now
+                    };
+                    _db.Users.Add(user);
+                    _db.SaveChanges(); // Lưu để có Id
+                }
+
+                student.UserId = user.Id;
+            }
+
+            // Update user email (đồng bộ)
+            if (student.User != null)
+            {
+                student.User.Email = student.Email;
+            }
+
+            // Remove old enrollments
+            var oldEnrollments = _db.Enrollments
+                .Where(e => e.StudentId == student.StudentId);
+
+            _db.Enrollments.RemoveRange(oldEnrollments);
+            _db.SaveChanges();
+
+            // Add new enrollments theo Class mới
+            var newCourses = _db.Courses
+                .Where(c => c.Class == student.Class)
+                .ToList();
+
+            foreach (var course in newCourses)
+            {
+                _db.Enrollments.Add(new Enrollment
+                {
+                    StudentId = student.StudentId,
+                    CourseId = course.CourseId
+                });
+            }
 
             _db.SaveChanges();
 
@@ -161,16 +242,40 @@ namespace SIMS.Controllers
             return RedirectToAction("Index");
         }
 
-        // ====================== DELETE STUDENT =======================
+        // ====================== DELETE STUDENT ======================
         [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
-            var student = _db.Students.Find(id);
-            if (student == null) return NotFound();
+            // 1. Lấy student kèm user + enrollments
+            var student = _db.Students
+                .Include(s => s.Enrollments)
+                .Include(s => s.User)
+                .FirstOrDefault(s => s.StudentId == id);
 
+            if (student == null)
+            {
+                TempData["ErrorMessage"] = "Student not found!";
+                return RedirectToAction("Index");
+            }
+
+            // 2. Xóa enrollment
+            if (student.Enrollments.Any())
+            {
+                _db.Enrollments.RemoveRange(student.Enrollments);
+            }
+
+            // 3. Xóa student
             _db.Students.Remove(student);
+
+            // 4. Xóa user
+            if (student.User != null)
+            {
+                _db.Users.Remove(student.User);
+            }
+
             _db.SaveChanges();
 
+            TempData["SuccessMessage"] = "Student and user account deleted successfully!";
             return RedirectToAction("Index");
         }
     }

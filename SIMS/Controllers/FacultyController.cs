@@ -61,45 +61,51 @@ namespace SIMS.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Add([Bind("FacultyName,Email,Department,Phone,HireDate,UserId")] Faculty faculty,
-                                string Username, string Password)
+        public IActionResult Add(
+    [Bind("FacultyName,Email,Department,Phone,HireDate,UserId")] Faculty faculty,
+    string Username,
+    string Password)
         {
-            // Validate cơ bản
-            if (string.IsNullOrEmpty(faculty.FacultyName) || string.IsNullOrEmpty(faculty.Email))
+            // ================= EMAIL VALIDATION (@gmail.com) =================
+            if (string.IsNullOrEmpty(faculty.Email) || !faculty.Email.EndsWith("@gmail.com"))
             {
-                TempData["ErrorMessage"] = "Faculty name and email are required.";
-                ViewBag.Users = new SelectList(_db.Users.Where(u => u.Role == "Faculty"), "Id", "Username");
+                ViewBag.EmailError = "Email must be in format @gmail.com";
+                return View(faculty); // ❌ không lưu, ❌ không redirect
+            }
+
+            // Validate cơ bản
+            if (string.IsNullOrEmpty(faculty.FacultyName))
+            {
+                TempData["ErrorMessage"] = "Faculty name is required.";
                 return View(faculty);
             }
 
-            // Nếu admin nhập Username (muốn gán user cho faculty)
+            // ================= USER LOGIC =================
             if (!string.IsNullOrEmpty(Username))
             {
                 var existingUser = _db.Users.FirstOrDefault(u => u.Username == Username);
+
                 if (existingUser != null)
                 {
-                    // Nếu User tồn tại => gán UserId
                     faculty.UserId = existingUser.Id;
                 }
                 else
                 {
-                    // Nếu tạo User mới nhưng thiếu Password => báo lỗi
                     if (string.IsNullOrEmpty(Password))
                     {
                         TempData["ErrorMessage"] = "Password is required for new user!";
-                        ViewBag.Users = new SelectList(_db.Users.Where(u => u.Role == "Faculty"), "Id", "Username");
                         return View(faculty);
                     }
 
-                    // Tạo User mới - LƯU PASSWORD NGUYÊN BẢN 
                     var newUser = new User
                     {
                         Username = Username,
                         Email = faculty.Email,
                         Role = "Faculty",
                         CreateAt = DateTime.Now,
-                        HashPassword = Password
+                        HashPassword = Password // theo yêu cầu của bạn
                     };
+
                     _db.Users.Add(newUser);
                     _db.SaveChanges();
 
@@ -107,7 +113,7 @@ namespace SIMS.Controllers
                 }
             }
 
-            // Lưu Faculty
+            // ================= SAVE FACULTY =================
             _db.Faculties.Add(faculty);
             _db.SaveChanges();
 
@@ -191,10 +197,17 @@ namespace SIMS.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
-            var faculty = _db.Faculties.Find(id);
+            var faculty = _db.Faculties
+                .Include(f => f.User)
+                .Include(f => f.Courses)
+                .FirstOrDefault(f => f.FacultyId == id);
+
             if (faculty == null) return NotFound();
 
+            _db.Courses.RemoveRange(faculty.Courses);
             _db.Faculties.Remove(faculty);
+            _db.Users.Remove(faculty.User);
+
             _db.SaveChanges();
 
             TempData["SuccessMessage"] = $"Faculty '{faculty.FacultyName}' deleted successfully!";
@@ -236,46 +249,43 @@ namespace SIMS.Controllers
         [HttpGet]
         public async Task<IActionResult> RecordAttendance(int courseId)
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return RedirectToAction("Index", "Login");
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            if (!int.TryParse(userIdClaim.Value, out int userId))
-                return RedirectToAction("Index", "Login");
+            Course course;
 
-            Faculty? faculty = await _db.Faculties.FirstOrDefaultAsync(f => f.UserId == userId);
-
-            Course? course;
-
-            // Nếu là Faculty → chỉ được thao tác trên course của mình
             if (User.IsInRole("Faculty"))
             {
-                if (faculty == null) return RedirectToAction("Index", "Login");
+                var faculty = await _db.Faculties.FirstOrDefaultAsync(f => f.UserId == userId);
+                if (faculty == null) return RedirectToAction("AssignedCourses");
 
-                course = await _db.Courses.FirstOrDefaultAsync(
-                    c => c.CourseId == courseId && c.FacultyId == faculty.FacultyId
-                );
+                course = await _db.Courses
+                    .FirstOrDefaultAsync(c => c.CourseId == courseId && c.FacultyId == faculty.FacultyId);
 
-                if (course == null)
-                    return RedirectToAction("AssignedCourses");
+                if (course == null) return RedirectToAction("AssignedCourses");
             }
             else
             {
-                // Admin thì lấy course theo Id
                 course = await _db.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
-                if (course == null)
-                    return RedirectToAction("Index", "Courses");
+                if (course == null) return RedirectToAction("Index", "Courses");
             }
 
-            // Lấy danh sách sinh viên trong lớp này
             var students = await _db.Enrollments
                 .Where(e => e.CourseId == courseId)
                 .Include(e => e.Student)
                 .Select(e => e.Student)
                 .ToListAsync();
 
+            var today = DateTime.Today;
+
+            var attendanceDict = await _db.Attendances
+                .Where(a => a.CourseId == courseId && a.Date == today)
+                .ToDictionaryAsync(a => a.StudentId, a => a.Present);
+
+            ViewBag.CourseId = courseId;
             ViewBag.CourseName = course.CourseName;
             ViewBag.ClassName = course.Class;
-            ViewBag.CourseId = course.CourseId;
+            ViewBag.Date = today;
+            ViewBag.AttendanceDict = attendanceDict;
 
             return View(students);
         }
@@ -283,36 +293,48 @@ namespace SIMS.Controllers
         // ======================= RECORD ATTENDANCE (POST) =======================
         [Authorize(Roles = "Admin, Faculty")]
         [HttpPost]
-        public async Task<IActionResult> RecordAttendanceSubmit(int courseId, DateTime date, List<int> presentStudentIds)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecordAttendanceSubmit(int courseId, DateTime date, List<int>? presentStudentIds)
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return RedirectToAction("Index", "Login");
-
-            if (!int.TryParse(userIdClaim.Value, out int userId))
-                return RedirectToAction("Index", "Login");
-
-            var faculty = await _db.Faculties.FirstOrDefaultAsync(f => f.UserId == userId);
-            if (faculty == null) return RedirectToAction("Index", "Login");
-
-            // Lấy danh sách sinh viên trong course
             var students = await _db.Enrollments
                 .Where(e => e.CourseId == courseId)
-                .Include(e => e.Student)
                 .Select(e => e.Student)
                 .ToListAsync();
 
-            // Dictionary: StudentId -> có mặt hay không
-            var attendanceDict = students.ToDictionary(
-                s => s.StudentId,
-                s => presentStudentIds != null && presentStudentIds.Contains(s.StudentId)
-            );
+            foreach (var student in students)
+            {
+                bool present = presentStudentIds != null &&
+                               presentStudentIds.Contains(student.StudentId);
 
-            // Gọi service để lưu điểm danh (service sẽ xử lý business logic, tránh controller quá nặng)
-            await _facultyService.RecordAttendance(faculty.FacultyId, courseId, date, attendanceDict);
+                var existing = await _db.Attendances.FirstOrDefaultAsync(a =>
+                    a.CourseId == courseId &&
+                    a.StudentId == student.StudentId &&
+                    a.Date == date
+                );
 
-            TempData["Success"] = "Attendance recorded successfully!";
-            return RedirectToAction("AssignedCourses");
+                if (existing != null)
+                {
+                    existing.Present = present;
+                }
+                else
+                {
+                    _db.Attendances.Add(new Attendance
+                    {
+                        CourseId = courseId,
+                        StudentId = student.StudentId,
+                        Date = date,
+                        Present = present
+                    });
+                }
+            }
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = "Attendance saved successfully!";
+
+            return RedirectToAction("RecordAttendance", new { courseId });
         }
+
 
         // ======================= MANAGE ACADEMIC RECORD =======================
         [Authorize(Roles = "Admin, Faculty")]

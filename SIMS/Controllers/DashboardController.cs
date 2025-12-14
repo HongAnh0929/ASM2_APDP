@@ -62,17 +62,22 @@ namespace SIMS.Controllers
                 .ToList();
 
             // ---------- DOUGHNUT CHART ----------
-            // Lấy danh sách tên các lớp (VD: IT01, IT02...)
-            ViewBag.ClassNames = _db.Students
-                .Select(s => s.Class)
-                .Distinct()     // chỉ lấy mỗi class 1 lần
+            // ---------- DOUGHNUT CHART (FIXED) ----------
+
+            // Lấy tất cả Class khác null, rỗng, hoặc khoảng trắng
+            var classGroups = _db.Students
+                .Where(s => !string.IsNullOrEmpty(s.Class)) // chống null hoặc ""
+                .GroupBy(s => s.Class.Trim())               // loại khoảng trắng dư
+                .Select(g => new {
+                    ClassName = g.Key,
+                    Count = g.Count()
+                })
+                .OrderBy(x => x.ClassName)                   // sắp xếp theo tên lớp (IT01, IT02...)
                 .ToList();
 
-            // Đếm số sinh viên trong từng lớp để vẽ biểu đồ doughnut
-            ViewBag.StudentCounts = _db.Students
-                .GroupBy(s => s.Class)   // gom các student theo class
-                .Select(g => g.Count())  // đếm số lượng mỗi nhóm
-                .ToList();
+            // Tách ra thành 2 danh sách gửi qua ViewBag
+            ViewBag.ClassNames = classGroups.Select(x => x.ClassName).ToList();
+            ViewBag.StudentCounts = classGroups.Select(x => x.Count).ToList();
 
             // Trả về view Admin.cshtml
             return View();

@@ -25,10 +25,14 @@
             <th>ScheduleId</th>
             <th>Faculty</th>
             <th>Course</th>
+            <th>Class</th>
             <th>Date</th>
             <th>Time</th>
             <th>Room</th>
-            <th>Actions</th>
+            @if (User.IsInRole("Admin, Faculty"))
+            {
+                <th>Actions</th>
+            }
         </tr>
     </thead>
 
@@ -44,6 +48,8 @@
 
                 <!-- Lấy tên khóa học (CourseName) -->
                 <td>@s.Course?.CourseName</td>
+
+                <td>@s.Course?.Class</td>
 
                 <!-- Kiểm tra nếu Date chưa có giá trị (default) thì hiển thị "-" -->
                 <td>@(s.Date == default(DateTime) ? "-" : s.Date.ToString("yyyy-MM-dd"))</td>

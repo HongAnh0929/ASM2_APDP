@@ -4,80 +4,75 @@
 @model SIMS.DatabaseContext.Entities.Course
 
 @{
-    Layout = "~/Views/Shared/_MainLayout.cshtml"; // Layout chung của hệ thống
-    ViewData["title"] = "Edit Course"; // Tiêu đề trang
-    ViewData["breadcrumb"] = "Courses"; // Breadcrumb chính
-    ViewData["breadcrumb_item"] = "Edit Course"; // Breadcrumb phụ
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    ViewData["title"] = "Edit Course";
+    ViewData["breadcrumb"] = "Courses";
+    ViewData["breadcrumb_item"] = "Edit Course";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div> @* Hiển thị lỗi nếu có *@
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
 <form asp-action="Edit" method="post">
-    @* Form gửi đến action Edit trong CoursesController *@
+    <input type="hidden" asp-for="CourseId" />
 
-    <input type="hidden" name="CourseId" value="@Model.CourseId" /> @* Ẩn CourseId để server biết đang sửa khóa học nào *@
-
-    <!-- COURSE NAME -->
-    <div class="form-group mb-3">
-        <label for="CourseName">Course Name</label>
-        <input type="text" name="CourseName" class="form-control" value="@Model.CourseName" required />
-        @* Input nhập tên khóa học - lấy giá trị cũ từ Model *@
+    <div class="mb-3">
+        <label asp-for="CourseName" class="form-label">Course Name</label>
+        <input asp-for="CourseName" class="form-control" />
+        <span asp-validation-for="CourseName" class="text-danger"></span>
     </div>
 
-    <!-- CREDITS -->
-    <div class="form-group mb-3">
-        <label for="Credits">Credits</label>
-        <input type="number" name="Credits" class="form-control" value="@Model.Credits" required />
-        @* Số tín chỉ - lấy từ Model *@
+    <div class="mb-3">
+        <label asp-for="Credits" class="form-label">Credits</label>
+        <input asp-for="Credits" type="number" class="form-control" />
+        <span asp-validation-for="Credits" class="text-danger"></span>
     </div>
 
-    <!-- CLASS -->
-    <div class="form-group mb-3">
-        <label for="Class">Class</label>
-        <input type="text" name="Class" class="form-control" value="@Model.Class" required />
-        @* Lớp - lấy từ Model *@
-    </div>
+    <div class="mb-3">
+        <label asp-for="Class" class="form-label">Class</label>
 
-    <!-- START DATE -->
-    <div class="form-group">
-        <label>Start Date</label>
-        <input type="date" name="StartDate" class="form-control" value="@Model.StartDate?.ToString("yyyy-MM-dd")" />
-        @* Ngày bắt đầu - format theo chuẩn HTML date *@
-    </div>
+        <input asp-for="Class" class="form-control" list="classList" placeholder="Enter or select class" />
 
-    <!-- END DATE -->
-    <div class="form-group">
-        <label>End Date</label>
-        <input type="date" name="EndDate" class="form-control" value="@Model.EndDate?.ToString("yyyy-MM-dd")" />
-        @* Ngày kết thúc *@
-    </div>
-
-
-    <!-- FACULTY DROPDOWN -->
-    <div class="form-group mb-3">
-        <label for="FacultyId">Faculty</label>
-        <select name="FacultyId" class="form-select" required>
-            @* ViewBag.Faculties là SelectList đã được Controller chuẩn bị *@
-            @foreach (var f in ViewBag.Faculties)
+        <datalist id="classList">
+            @if (ViewBag.Classes != null)
             {
-                if (f.Selected)
+                foreach (var cls in ViewBag.Classes)
                 {
-                    <option value="@f.Value" selected="selected">@f.Text</option>
-                }
-                else
-                {
-                    <option value="@f.Value">@f.Text</option>
+                    <option value="@cls"></option>
                 }
             }
-        </select>
-        @* Dropdown chọn giảng viên - tự động đánh dấu selected đúng Faculty hiện tại *@
+        </datalist>
+
+        <span asp-validation-for="Class" class="text-danger"></span>
     </div>
 
 
-    <!-- BUTTONS -->
-    <button type="submit" class="btn btn-primary">Update</button> @* Nút cập nhật *@
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a> @* Quay về danh sách *@
+    <div class="mb-3">
+        <label asp-for="StartDate" class="form-label">Start Date</label>
+        <input asp-for="StartDate" type="date" class="form-control" />
+        <span asp-validation-for="StartDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EndDate" class="form-label">End Date</label>
+        <input asp-for="EndDate" type="date" class="form-control" />
+        <span asp-validation-for="EndDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FacultyId" class="form-label">Faculty</label>
+        <select asp-for="FacultyId" class="form-select" asp-items="ViewBag.Faculties">
+            <option value="">-- Select Faculty --</option>
+        </select>
+        <span asp-validation-for="FacultyId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update Course</button>
+    <a asp-action="Index" class="btn btn-secondary mt-2">Cancel</a>
 </form>

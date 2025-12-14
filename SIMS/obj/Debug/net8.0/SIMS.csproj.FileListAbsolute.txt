@@ -355,3 +355,4 @@ D:\APDP\SIMS\SIMS\obj\Debug\net8.0\refint\SIMS.dll
 D:\APDP\SIMS\SIMS\obj\Debug\net8.0\SIMS.pdb
 D:\APDP\SIMS\SIMS\obj\Debug\net8.0\SIMS.genruntimeconfig.cache
 D:\APDP\SIMS\SIMS\obj\Debug\net8.0\ref\SIMS.dll
+D:\APDP\SIMS\SIMS\obj\Debug\net8.0\SIMS.sourcelink.json

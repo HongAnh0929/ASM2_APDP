@@ -49,6 +49,13 @@
         </select>
     </div>
 
+    <div class="mb-3">
+        <label>Class</label>
+        <select name="Class" id="classSelect" class="form-select" required>
+            <option value="">-- select class --</option>
+        </select>
+    </div>
+
     @*
         Input ngày học.
         Thuộc tính name="Date" khớp với model Schedule.Date.
@@ -65,10 +72,21 @@
     *@
     <div class="mb-3">
         <label>Time</label>
-        <input type="text" name="Time" class="form-control" placeholder="08:00 - 10:00" required />
-        <span asp-validation-for="Time" class="text-danger"></span>
-    </div>
 
+        <div class="d-flex gap-2">
+            <input type="time"
+                   name="StartTime"
+                   class="form-control"
+                   required />
+
+            <span class="align-self-center">-</span>
+
+            <input type="time"
+                   name="EndTime"
+                   class="form-control"
+                   required />
+        </div>
+    </div>
     @*
         Phòng học.
         Người dùng nhập tên phòng: A101, B204,...
@@ -85,3 +103,35 @@
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 
 </form>
+
+<script>
+    document.querySelector('select[name="CourseId"]').addEventListener('change', function () {
+        const courseId = this.value;
+        const classSelect = document.getElementById('classSelect');
+
+        classSelect.innerHTML = '<option value="">-- select class --</option>';
+
+        if (!courseId) return;
+
+        fetch(`/Schedules/GetClassesByCourse?courseId=${courseId}`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(cls => {
+                    const option = document.createElement('option');
+                    option.value = cls;
+                    option.text = cls;
+                    classSelect.appendChild(option);
+                });
+            });
+    });
+
+     document.querySelector("form").addEventListener("submit", function (e) {
+        const start = document.querySelector('input[name="StartTime"]').value;
+        const end = document.querySelector('input[name="EndTime"]').value;
+
+        if (start && end && start >= end) {
+            alert("End time must be later than start time!");
+            e.preventDefault();
+        }
+    });
+</script>

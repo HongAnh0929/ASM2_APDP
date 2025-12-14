@@ -63,13 +63,46 @@
 
     <!-- PASSWORD: hiển thị password hiện tại (plaintext) -->
     <div class="form-group">
-        <label>Password</label>
-        <!-- name="NewUserPassword" match với Controller -->
-        <!-- Lấy HashPassword (password đang lưu dạng text) -->
-        <input type="password" name="NewUserPassword" class="form-control" value="@Model.User?.HashPassword" />
+        <label for="password">Password</label>
+
+        <div class="position-relative">
+            <input type="password"
+                   id="password"
+                   name="NewUserPassword"
+                   class="form-control pe-5"
+                   value="@Model.User?.HashPassword"
+                   onfocus="showEye()" />
+
+            <i id="toggleEye"
+               class="fa fa-eye position-absolute top-50 end-0 translate-middle-y me-3 text-muted d-none"
+               style="cursor:pointer; opacity:0.5"
+               onmousedown="event.preventDefault()"
+               onclick="togglePassword()"></i>
+        </div>
     </div>
 
     <!-- BUTTONS -->
-    <button type="submit" class="btn btn-primary mt-2">Update</button>
+    <button type="submit" class="btn btn-primary mt-2">Update Faculty</button>
     <a asp-action="Index" class="btn btn-secondary mt-2">Cancel</a>
 </form>
+
+<script>
+    function togglePassword() {
+        const input = document.getElementById("password");
+        const icon = document.getElementById("toggleEye");
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        }
+
+        input.focus(); // giữ con trỏ trong ô
+    }
+
+    function showEye() {
+        document.getElementById("toggleEye").classList.remove("d-none");
+    }
+</script>

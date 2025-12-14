@@ -54,10 +54,42 @@ namespace SIMS.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(Schedule model)
+        public async Task<IActionResult> Add(
+    Schedule model,
+    string StartTime,
+    string EndTime
+)
         {
+            // ===== VALIDATE TIME =====
+            if (string.IsNullOrEmpty(StartTime) || string.IsNullOrEmpty(EndTime))
+            {
+                ModelState.AddModelError("Time", "Time is required.");
+            }
+            else if (string.Compare(StartTime, EndTime) >= 0)
+            {
+                ModelState.AddModelError("Time", "End time must be later than start time.");
+            }
+
             if (!ModelState.IsValid)
             {
+                BuildDropdowns(model.FacultyId, model.CourseId);
+                return View(model);
+            }
+
+            // Ghép lại thành "08:00 - 10:00"
+            model.Time = $"{StartTime} - {EndTime}";
+
+            // ===== CHECK TRÙNG LỊCH =====
+            bool isConflict = _db.Schedules.Any(s =>
+                s.CourseId == model.CourseId &&
+                s.Class == model.Class &&
+                s.Date == model.Date &&
+                s.Time == model.Time
+            );
+
+            if (isConflict)
+            {
+                ModelState.AddModelError("", "This class already has a schedule at this time.");
                 BuildDropdowns(model.FacultyId, model.CourseId);
                 return View(model);
             }
@@ -67,6 +99,19 @@ namespace SIMS.Controllers
 
             TempData["SuccessMessage"] = "Schedule added.";
             return RedirectToAction(nameof(Index));
+        }
+
+
+        [HttpGet]
+        public IActionResult GetClassesByCourse(int courseId)
+        {
+            var classes = _db.Courses
+                .Where(c => c.CourseId == courseId)
+                .Select(c => c.Class)
+                .Distinct()
+                .ToList();
+
+            return Json(classes);
         }
 
         // ===========================

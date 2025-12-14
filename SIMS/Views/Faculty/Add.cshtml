@@ -48,9 +48,15 @@
     <div class="form-group">
         <label asp-for="Email"></label>
         <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-        @* Nhập email giảng viên *@
+
+        @if (ViewBag.EmailError != null)
+        {
+            <div class="text-danger">
+                @ViewBag.EmailError
+            </div>
+        }
     </div>
+
 
     <div class="form-group">
         <label asp-for="Department"></label>
@@ -92,6 +98,6 @@
         @* Password cũng gửi về controller thông qua Request.Form hoặc parameter *@
     </div>
 
-    <button type="submit" class="btn btn-success mt-2">Add</button>
+    <button type="submit" class="btn btn-success mt-2">Add Faculty</button>
     @* Nút submit form *@
 </form>
