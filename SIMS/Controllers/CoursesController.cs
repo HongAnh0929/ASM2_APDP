@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -46,11 +46,14 @@ namespace SIMS.Controllers
         [HttpGet]
         public IActionResult Add()
         {
+<<<<<<< HEAD
             ViewBag.Classes = _db.Courses
                 .Select(c => c.Class)
                 .Distinct()
                 .ToList();
 
+=======
+>>>>>>> b5942431eb6205db8366dbcb5070b69ceb936fd6
             LoadFacultiesDropdown();
             return View();
         }
@@ -114,11 +117,14 @@ namespace SIMS.Controllers
             var course = _db.Courses.FirstOrDefault(c => c.CourseId == id);
             if (course == null) return NotFound();
 
+<<<<<<< HEAD
             ViewBag.Classes = _db.Courses
                 .Select(c => c.Class)
                 .Distinct()
                 .ToList();
 
+=======
+>>>>>>> b5942431eb6205db8366dbcb5070b69ceb936fd6
             LoadFacultiesDropdown(course.FacultyId);
             return View(course);
         }
@@ -159,6 +165,7 @@ namespace SIMS.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
+<<<<<<< HEAD
             var course = _db.Courses
                 .Include(c => c.Enrollments)
                 .FirstOrDefault(c => c.CourseId == id);
@@ -184,6 +191,10 @@ namespace SIMS.Controllers
             {
                 _db.Enrollments.RemoveRange(course.Enrollments);
             }
+=======
+            var course = _db.Courses.Find(id);
+            if (course == null) return NotFound();
+>>>>>>> b5942431eb6205db8366dbcb5070b69ceb936fd6
 
             _db.Courses.Remove(course);
             _db.SaveChanges();
@@ -192,7 +203,10 @@ namespace SIMS.Controllers
             return RedirectToAction("Index");
         }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b5942431eb6205db8366dbcb5070b69ceb936fd6
         // -------------------------------
         // HELPER: LOAD FACULTY DROPDOWN
         // -------------------------------

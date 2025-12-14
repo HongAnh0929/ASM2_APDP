@@ -1,4 +1,4 @@
-﻿@*
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @model SIMS.DatabaseContext.Entities.Course
@@ -36,6 +36,7 @@
 
     <div class="mb-3">
         <label asp-for="Class" class="form-label">Class</label>
+<<<<<<< HEAD
 
         <input asp-for="Class" class="form-control" list="classList" placeholder="Enter or select class" />
 
@@ -75,4 +76,31 @@
 
     <button type="submit" class="btn btn-success">Update Course</button>
     <a asp-action="Index" class="btn btn-secondary mt-2">Cancel</a>
+=======
+        <input asp-for="Class" class="form-control" />
+        <span asp-validation-for="Class" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="StartDate" class="form-label">Start Date</label>
+        <input asp-for="StartDate" type="date" class="form-control" />
+        <span asp-validation-for="StartDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EndDate" class="form-label">End Date</label>
+        <input asp-for="EndDate" type="date" class="form-control" />
+        <span asp-validation-for="EndDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FacultyId" class="form-label">Faculty</label>
+        <select asp-for="FacultyId" class="form-select" asp-items="ViewBag.Faculties">
+            <option value="">-- Select Faculty --</option>
+        </select>
+        <span asp-validation-for="FacultyId" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Update Course</button>
+>>>>>>> b5942431eb6205db8366dbcb5070b69ceb936fd6
 </form>

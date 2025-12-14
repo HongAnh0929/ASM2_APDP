@@ -1,4 +1,4 @@
-﻿@*
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @model SIMS.DatabaseContext.Entities.Course
@@ -35,6 +35,7 @@
 
     <div class="mb-3">
         <label asp-for="Class" class="form-label">Class</label>
+<<<<<<< HEAD
 
         <input asp-for="Class" class="form-control" list="classList" placeholder="Enter or select class" />
 
@@ -52,6 +53,12 @@
     </div>
 
 
+=======
+        <input asp-for="Class" class="form-control" />
+        <span asp-validation-for="Class" class="text-danger"></span>
+    </div>
+
+>>>>>>> b5942431eb6205db8366dbcb5070b69ceb936fd6
     <div class="mb-3">
         <label asp-for="StartDate" class="form-label">Start Date</label>
         <input asp-for="StartDate" type="date" class="form-control" />
