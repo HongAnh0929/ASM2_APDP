@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIMS.DatabaseContext;
 using SIMS.DatabaseContext.Entities;
@@ -7,6 +8,7 @@ using System.Security.Claims;
 
 namespace SIMS.Controllers
 {
+    [Authorize]
     public class StudentsController : Controller
     {
         private readonly SimDbContext _db;
@@ -16,267 +18,275 @@ namespace SIMS.Controllers
             _db = db;
         }
 
-        // ====================== STUDENT VIEW OWN INFO ======================
+        // ================= STUDENT VIEW OWN INFO =================
         [Authorize(Roles = "Student")]
-        public IActionResult Info()
+        public async Task<IActionResult> Info()
         {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdClaim))
-                return RedirectToAction("Login", "Account");
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            int userId = int.Parse(userIdClaim);
-
-            var student = _db.Students
+            var student = await _db.Students
                 .Include(s => s.User)
-                .FirstOrDefault(s => s.UserId == userId);
+                .FirstOrDefaultAsync(s => s.UserId == userId);
 
+            if (student == null) return NotFound();
             return View(student);
         }
 
-        // ====================== LIST + SEARCH STUDENTS ======================
-        [Authorize(Roles = "Admin, Faculty, Student")]
-        public async Task<IActionResult> Index(string search)
+        // ================= LIST =================
+        [Authorize(Roles = "Admin,Faculty,Student")]
+        public async Task<IActionResult> Index(string? search)
         {
-            var query = _db.Students.Include(s => s.User).AsQueryable();
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            IQueryable<Student> students;
+
+            if (role == "Admin")
+            {
+                students = _db.Students.Include(s => s.User);
+            }
+            else if (role == "Faculty")
+            {
+                var facultyId = await _db.Faculties
+                    .Where(f => f.UserId == userId)
+                    .Select(f => f.FacultyId)
+                    .FirstOrDefaultAsync();
+
+                students = _db.Enrollments
+                    .Where(e => e.Course.FacultyCourses.Any(fc => fc.FacultyId == facultyId))
+                    .Select(e => e.Student)
+                    .Distinct();
+            }
+            else // Student
+            {
+                var student = await _db.Students.FirstAsync(s => s.UserId == userId);
+                students = _db.Students.Where(s => s.Class == student.Class);
+            }
 
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
-                query = query.Where(s =>
+                students = students.Where(s =>
                     s.FullName.ToLower().Contains(search) ||
-                    s.Email.ToLower().Contains(search) ||
-                    s.Class.ToLower().Contains(search)
-                );
+                    s.Email.ToLower().Contains(search));
             }
 
-            ViewBag.SearchTerm = search;
-            return View(await query.ToListAsync());
+            return View(await students.AsNoTracking().ToListAsync());
         }
 
-        // ====================== ADD STUDENT (GET) ======================
+        // ================= ADD =================
         [Authorize(Roles = "Admin")]
+        [HttpGet]
         public IActionResult Add()
         {
-            ViewBag.Classes = _db.Courses
-                .Select(c => c.Class)
-                .Distinct()
-                .ToList();
-
+            ViewBag.ClassesList = new SelectList(
+                _db.Courses.Select(c => c.Class).Distinct()
+            );
             return View();
         }
 
-        // ====================== ADD STUDENT (POST) ======================
-        [HttpPost]
         [Authorize(Roles = "Admin")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Add(string FullName, string Major, string Gender, DateTime Dob, float GPA, string AcademicStanding, string Class,string Username, string Password, string Email)
+        public async Task<IActionResult> Add(Student student, string Username, string Password)
         {
-            // ❗ 1. CHECK EMAIL PHẢI LÀ @gmail.com
-            if (string.IsNullOrEmpty(Email) || !Email.EndsWith("@gmail.com"))
+            // ---------- VALIDATION ----------
+            if (string.IsNullOrWhiteSpace(Username) || Username.Length < 8)
+                ModelState.AddModelError("Username", "Username must be at least 8 characters");
+            else if (!char.IsUpper(Username[0]))
+                ModelState.AddModelError("Username", "Username must start with an uppercase letter");
+
+            if (await _db.Users.AnyAsync(u => u.Username == Username))
+                ModelState.AddModelError("Username", "Username already exists");
+
+            if (string.IsNullOrWhiteSpace(Password) || Password.Length < 8)
+                ModelState.AddModelError("Password", "Password must be at least 8 characters");
+
+            // Email validation
+            if (string.IsNullOrWhiteSpace(student.Email) || !student.Email.Contains("@gmail.com"))
+                ModelState.AddModelError("Email", "Email must contain '@gmail.com'");
+
+            if (await _db.Students.AnyAsync(s => s.Email == student.Email))
+                ModelState.AddModelError("Email", "Email already exists");
+
+            if (!ModelState.IsValid)
             {
-                ViewBag.EmailError = "Email must be in format @gmail.com";
-                return View(); // ❌ không lưu, ❌ không redirect
+                ViewBag.ClassesList = new SelectList(
+                    _db.Courses.Select(c => c.Class).Distinct()
+                );
+                return View(student);
             }
 
-            // ❗ 2. CHECK USERNAME TRÙNG
-            if (_db.Users.Any(u => u.Username == Username))
-            {
-                TempData["ErrorMessage"] = "Username already exists!";
-                return RedirectToAction("Add");
-            }
-
-            // 3️⃣ CREATE USER
+            // ---------- CREATE USER (lưu password trực tiếp) ----------
             var user = new User
             {
                 Username = Username,
-                Email = Email,
-                HashPassword = Password, // plain text theo yêu cầu
+                Email = student.Email,
+                HashPassword = Password, // <-- không hash nữa
                 Role = "Student",
                 CreateAt = DateTime.Now
             };
-
             _db.Users.Add(user);
-            _db.SaveChanges(); // để có UserId
+            await _db.SaveChangesAsync();
 
-            // 4️⃣ CREATE STUDENT
-            var student = new Student
-            {
-                FullName = FullName,
-                Major = Major,
-                Gender = Gender,
-                Dob = Dob,
-                GPA = GPA,
-                AcademicStanding = AcademicStanding,
-                Class = Class,
-                Email = Email,
-                UserId = user.Id
-            };
-
+            // ---------- CREATE STUDENT ----------
+            student.UserId = user.Id;
             _db.Students.Add(student);
-            _db.SaveChanges(); // để có StudentId
-
-            // 5️⃣ AUTO ENROLL COURSES THEO CLASS
-            var courses = _db.Courses
-                .Where(c => c.Class == student.Class)
-                .ToList();
-
-            foreach (var course in courses)
-            {
-                _db.Enrollments.Add(new Enrollment
-                {
-                    StudentId = student.StudentId,
-                    CourseId = course.CourseId
-                });
-            }
-
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Student created successfully!";
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
-        // ====================== EDIT STUDENT (GET) ======================
+        // ================= EDIT =================
         [Authorize(Roles = "Admin")]
-        public IActionResult Edit(int id)
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
-            var student = _db.Students
+            var student = await _db.Students
                 .Include(s => s.User)
-                .FirstOrDefault(s => s.StudentId == id);
+                .FirstOrDefaultAsync(s => s.StudentId == id);
 
             if (student == null) return NotFound();
 
-            ViewBag.Classes = _db.Courses
-                .Select(c => c.Class)
-                .Distinct()
-                .ToList();
+            ViewBag.ClassesList = new SelectList(
+                _db.Courses.Select(c => c.Class).Distinct(),
+                student.Class
+            );
 
             return View(student);
         }
 
-        // ====================== EDIT STUDENT (POST) ======================
-        [HttpPost]
         [Authorize(Roles = "Admin")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int StudentId, string FullName, string Major, string Gender, DateTime Dob, float GPA, string AcademicStanding, string Class, string Username, string Password, string Email)
+        public async Task<IActionResult> Edit(Student model, string Username, string? Password)
         {
-            var student = _db.Students
-                .Include(s => s.User)
-                .FirstOrDefault(s => s.StudentId == StudentId);
+            var student = await _db.Students.Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.StudentId == model.StudentId);
 
-            if (student == null)
+            if (student == null) return NotFound();
+
+            // ---------- VALIDATION ----------
+            if (string.IsNullOrWhiteSpace(Username) || Username.Length < 8)
+                ModelState.AddModelError("Username", "Username must be at least 8 characters");
+            else if (!char.IsUpper(Username[0]))
+                ModelState.AddModelError("Username", "Username must start with an uppercase letter");
+
+            if (await _db.Users.AnyAsync(u => u.Username == Username && u.Id != student.UserId))
+                ModelState.AddModelError("Username", "Username already exists");
+
+            if (!string.IsNullOrWhiteSpace(Password) && Password.Length < 8)
+                ModelState.AddModelError("Password", "Password must be at least 8 characters");
+
+            if (string.IsNullOrWhiteSpace(model.Email) || !model.Email.Contains("@gmail.com"))
+                ModelState.AddModelError("Email", "Email must contain '@gmail.com'");
+
+            if (await _db.Students.AnyAsync(s => s.Email == model.Email && s.StudentId != student.StudentId))
+                ModelState.AddModelError("Email", "Email already exists");
+
+            if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = "Student not found!";
-                return RedirectToAction("Index");
+                ViewBag.ClassesList = new SelectList(
+                    _db.Courses.Select(c => c.Class).Distinct(),
+                    model.Class
+                );
+                return View(model);
             }
 
-            // Update student info
-            student.FullName = FullName ;
-            student.Email = Email;
-            student.Gender = Gender;
-            student.Major = Major;
-            student.Dob = Dob;
-            student.GPA = GPA;
-            student.AcademicStanding = AcademicStanding;
-            student.Class = Class;
+            // ---------- UPDATE STUDENT ----------
+            student.FullName = model.FullName;
+            student.Email = model.Email;
+            student.Major = model.Major;
+            student.Gender = model.Gender;
+            student.Dob = model.Dob;
+            student.GPA = model.GPA;
+            student.AcademicStanding = model.AcademicStanding;
+            student.Class = model.Class;
 
-            // Nếu admin nhập username mới => sửa hoặc tạo account
-            if (!string.IsNullOrEmpty(Username))
-            {
-                User user;
-                if (student.User != null)
-                {
-                    // Đã có user => cập nhật thông tin
-                    user = student.User;
-                    user.Username = Username;
+            // ---------- UPDATE USER ----------
+            student.User.Username = Username;
+            if (!string.IsNullOrWhiteSpace(Password))
+                student.User.HashPassword = Password; // <-- không hash nữa
 
-                    if (!string.IsNullOrEmpty(Password))
-                        user.HashPassword = Password;
-                }
-                else
-                {
-                    // Tạo user mới nếu faculty chưa có account
-                    user = new User
-                    {
-                        Username = Username,
-                        HashPassword = string.IsNullOrEmpty(Password) ? "" : Password,
-                        Role = "Student",
-                        CreateAt = DateTime.Now
-                    };
-                    _db.Users.Add(user);
-                    _db.SaveChanges(); // Lưu để có Id
-                }
-
-                student.UserId = user.Id;
-            }
-
-            // Update user email (đồng bộ)
-            if (student.User != null)
-            {
-                student.User.Email = student.Email;
-            }
-
-            // Remove old enrollments
-            var oldEnrollments = _db.Enrollments
-                .Where(e => e.StudentId == student.StudentId);
-
-            _db.Enrollments.RemoveRange(oldEnrollments);
-            _db.SaveChanges();
-
-            // Add new enrollments theo Class mới
-            var newCourses = _db.Courses
-                .Where(c => c.Class == student.Class)
-                .ToList();
-
-            foreach (var course in newCourses)
-            {
-                _db.Enrollments.Add(new Enrollment
-                {
-                    StudentId = student.StudentId,
-                    CourseId = course.CourseId
-                });
-            }
-
-            _db.SaveChanges();
-
+            await _db.SaveChangesAsync();
             TempData["SuccessMessage"] = "Student updated successfully!";
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
-        // ====================== DELETE STUDENT ======================
+        // ================= DELETE =================
         [Authorize(Roles = "Admin")]
-        public IActionResult Delete(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
-            // 1. Lấy student kèm user + enrollments
-            var student = _db.Students
-                .Include(s => s.Enrollments)
+            var student = await _db.Students
                 .Include(s => s.User)
-                .FirstOrDefault(s => s.StudentId == id);
+                .Include(s => s.Enrollments)
+                .FirstOrDefaultAsync(s => s.StudentId == id);
 
-            if (student == null)
-            {
-                TempData["ErrorMessage"] = "Student not found!";
-                return RedirectToAction("Index");
-            }
+            if (student == null) return NotFound();
 
-            // 2. Xóa enrollment
             if (student.Enrollments.Any())
-            {
                 _db.Enrollments.RemoveRange(student.Enrollments);
-            }
 
-            // 3. Xóa student
             _db.Students.Remove(student);
 
-            // 4. Xóa user
             if (student.User != null)
-            {
                 _db.Users.Remove(student.User);
-            }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Student and user account deleted successfully!";
-            return RedirectToAction("Index");
+            TempData["SuccessMessage"] = "Student deleted successfully!";
+            return RedirectToAction(nameof(Index));
         }
+
+        // ================= STUDENT ATTENDANCE VIEW =================
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Attendance()
+        {
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var student = await _db.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (student == null) return Unauthorized();
+
+            // Lấy tất cả attendance + include Course + Faculty
+            var attendances = await _db.Attendances
+                .Where(a => a.StudentId == student.StudentId)
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Faculty)
+                .ToListAsync();
+
+            // Chỉ lấy duy nhất 1 bản ghi/ngày
+            var uniqueAttendances = attendances
+                .GroupBy(a => a.Date)
+                .Select(g => g.OrderByDescending(a => a.AttendanceId).First())
+                .OrderByDescending(a => a.Date)
+                .ToList();
+
+            ViewBag.StudentName = student.FullName;
+            return View(uniqueAttendances);
+        }
+
+        // ========================= COURSE STUDENTS =========================
+        public IActionResult CourseStudents(int courseId, string className)
+        {
+            // Lấy thông tin course
+            var course = _db.Courses.FirstOrDefault(c => c.CourseId == courseId);
+            if (course == null) return NotFound();
+
+            // Lọc sinh viên theo course + class chính xác
+            var students = _db.Enrollments
+                .Where(e => e.CourseId == courseId && e.Student.Class == className)
+                .Include(e => e.Student)
+                .Select(e => e.Student)
+                .ToList();
+
+            ViewBag.Course = course;
+            ViewBag.ClassName = className;
+            return View(students);
+        }
+
+
     }
 }

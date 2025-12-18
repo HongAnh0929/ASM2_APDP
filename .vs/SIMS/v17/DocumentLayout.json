@@ -1,122 +1,12 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\APDP\\SIMS\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\views\\faculty\\recordattendance.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\views\\faculty\\recordattendance.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\controllers\\facultycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\controllers\\facultycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\databasecontext\\entities\\attendance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\databasecontext\\entities\\attendance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\views\\schedules\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\views\\schedules\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\views\\students\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\views\\students\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|d:\\apdp\\sims\\sims\\views\\schedules\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{2823DEEA-4359-468C-A997-B88080D114C7}|SIMS\\SIMS.csproj|solutionrelative:sims\\views\\schedules\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    }
-  ],
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 1,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": [
-        {
-          "DockedHeight": 200,
-          "SelectedChildIndex": 0,
-          "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "RecordAttendance.cshtml",
-              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Views\\Faculty\\RecordAttendance.cshtml",
-              "RelativeDocumentMoniker": "SIMS\\Views\\Faculty\\RecordAttendance.cshtml",
-              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Views\\Faculty\\RecordAttendance.cshtml",
-              "RelativeToolTip": "SIMS\\Views\\Faculty\\RecordAttendance.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-14T12:26:03.436Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Attendance.cs",
-              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\DatabaseContext\\Entities\\Attendance.cs",
-              "RelativeDocumentMoniker": "SIMS\\DatabaseContext\\Entities\\Attendance.cs",
-              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\DatabaseContext\\Entities\\Attendance.cs",
-              "RelativeToolTip": "SIMS\\DatabaseContext\\Entities\\Attendance.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-14T12:15:04.025Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "FacultyController.cs",
-              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Controllers\\FacultyController.cs",
-              "RelativeDocumentMoniker": "SIMS\\Controllers\\FacultyController.cs",
-              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Controllers\\FacultyController.cs",
-              "RelativeToolTip": "SIMS\\Controllers\\FacultyController.cs",
-              "ViewState": "AgIAAEEBAAAAAAAAAAAAwCgBAABcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-14T12:06:33.818Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Views\\Students\\Index.cshtml",
-              "RelativeDocumentMoniker": "SIMS\\Views\\Students\\Index.cshtml",
-              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Views\\Students\\Index.cshtml",
-              "RelativeToolTip": "SIMS\\Views\\Students\\Index.cshtml",
-              "ViewState": "AgIAACgAAAAA0szMzMwHwDQAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-14T12:05:36.651Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Views\\Schedules\\Index.cshtml",
-              "RelativeDocumentMoniker": "SIMS\\Views\\Schedules\\Index.cshtml",
-              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Views\\Schedules\\Index.cshtml",
-              "RelativeToolTip": "SIMS\\Views\\Schedules\\Index.cshtml",
-              "ViewState": "AgIAABYAAACAzszMzMwHwB4AAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-14T12:05:20.466Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Edit.cshtml",
-              "DocumentMoniker": "D:\\APDP\\SIMS\\SIMS\\Views\\Schedules\\Edit.cshtml",
-              "RelativeDocumentMoniker": "SIMS\\Views\\Schedules\\Edit.cshtml",
-              "ToolTip": "D:\\APDP\\SIMS\\SIMS\\Views\\Schedules\\Edit.cshtml",
-              "RelativeToolTip": "SIMS\\Views\\Schedules\\Edit.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-14T12:05:19.259Z",
-              "EditorCaption": ""
-            }
-          ]
-        }
-      ]
+      "DocumentGroups": []
     }
   ]
 }

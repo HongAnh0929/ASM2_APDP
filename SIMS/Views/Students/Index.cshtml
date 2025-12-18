@@ -1,11 +1,11 @@
-﻿@*
+﻿﻿@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @*
     Đây là phần comment Razor, không ảnh hưởng đến code.
     Trang này dùng để hiển thị danh sách sinh viên.
 *@
-@model IEnumerable<SIMS.DatabaseContext.Entities.Student>  
+@model IEnumerable<SIMS.DatabaseContext.Entities.Student>
 @* View nhận vào danh sách Student *@
 
 @{
@@ -29,7 +29,7 @@
 <form method="get" asp-action="Index" class="mb-3">
     <div class="input-group">
         @* Ô nhập search, lưu lại giá trị cũ nếu có *@
-        <input type="text" name="search" value="@(ViewBag.SearchTerm ?? "")" 
+        <input type="text" name="search" value="@(ViewBag.SearchTerm ?? "")"
                class="form-control" placeholder="Search students..." />
 
         @* Nút submit *@
@@ -87,11 +87,11 @@
 
                         <td>
                             @* Link sửa sinh viên *@
-                            <a asp-action="Edit" asp-route-id="@s.StudentId" 
+                            <a asp-action="Edit" asp-route-id="@s.StudentId"
                                class="btn btn-warning btn-sm">Edit</a>
 
                             @* Link xoá sinh viên với confirm *@
-                            <a asp-action="Delete" asp-route-id="@s.StudentId" 
+                            <a asp-action="Delete" asp-route-id="@s.StudentId"
                                class="btn btn-danger btn-sm"
                                onclick="return confirm('Delete?')">Delete</a>
                         </td>

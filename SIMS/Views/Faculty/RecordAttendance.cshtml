@@ -1,81 +1,75 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<SIMS.DatabaseContext.Entities.Student>
+﻿@model IEnumerable<SIMS.DatabaseContext.Entities.Student>
 
 @{
     Layout = "~/Views/Shared/_MainLayout.cshtml";
-
     ViewData["title"] = "Record Attendance";
     ViewData["breadcrumb"] = "Faculty";
 
+    int scheduleId = ViewBag.ScheduleId;
     int courseId = ViewBag.CourseId;
     string courseName = ViewBag.CourseName;
     string className = ViewBag.ClassName;
     DateTime date = ViewBag.Date;
-
-    Dictionary<int, bool> attendance =
-        ViewBag.AttendanceDict as Dictionary<int, bool>;
+    Dictionary<int, bool> attendance = ViewBag.AttendanceDict as Dictionary<int, bool> ?? new();
 }
 
-<h2>Record Attendance for @courseName (@className)</h2>
+<h3 class="mb-3">
+    Record Attendance for <strong>@courseName</strong>
+    (<span class="text-primary">@className</span>) -
+    <span class="text-muted">@date.ToString("dd/MM/yyyy")</span>
+</h3>
 
-@if (TempData["Success"] != null)
+@if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-        @TempData["Success"]
+    <div class="alert alert-success alert-dismissible fade show mt-3">
+        @TempData["SuccessMessage"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<form asp-action="RecordAttendanceSubmit" method="post" class="mt-3">
+<form asp-action="RecordAttendanceSubmit" method="post">
+    <input type="hidden" name="scheduleId" value="@scheduleId" />
 
-    <input type="hidden" name="courseId" value="@courseId" />
-    <input type="hidden" name="date" value="@date.ToString("yyyy-MM-dd")" />
-
-    <table class="table table-bordered table-striped">
-        <thead>
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-light">
             <tr>
                 <th>Student ID</th>
                 <th>Student Name</th>
-                <th class="text-center">Present</th>
+                <th class="text-center">Attendance</th>
             </tr>
         </thead>
 
         <tbody>
             @foreach (var student in Model)
             {
-                bool present =
-                attendance != null &&
-                attendance.ContainsKey(student.StudentId) &&
-                attendance[student.StudentId];
+                bool present = attendance.ContainsKey(student.StudentId) && attendance[student.StudentId];
 
                 <tr>
                     <td>@student.StudentId</td>
                     <td>@student.FullName</td>
                     <td class="text-center">
-                        <input type="checkbox"
-                               name="presentStudentIds"
-                               value="@student.StudentId"
-                               @(present ? "checked" : "") />
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="attendance[@student.StudentId]"
+                                   value="true"
+                                   @(present ? "checked" : "") />
+                            <label class="form-check-label text-success fw-bold">PRESENT</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="attendance[@student.StudentId]"
+                                   value="false"
+                                   @(!present ? "checked" : "") />
+                            <label class="form-check-label text-danger fw-bold">ABSENT</label>
+                        </div>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <button type="submit" class="btn btn-primary"> Save Attendance </button>
-
-    <a asp-action="AssignedCourses"
-       asp-controller="Faculty"
-       class="btn btn-secondary ms-2">
-        Back
-    </a>
+    <button type="submit" class="btn btn-primary">Save Attendance</button>
+    <a asp-action="AssignedCourses" asp-controller="Faculty" class="btn btn-secondary ms-2">Back</a>
 </form>
-
-<script>
-    setTimeout(() => {
-        const alert = document.querySelector('.alert');
-        if (alert) alert.remove();
-    }, 3000);
-</script>

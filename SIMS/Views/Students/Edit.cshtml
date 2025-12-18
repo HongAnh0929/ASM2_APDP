@@ -1,148 +1,107 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@*
-    View chỉnh sửa thông tin Student.
-    Dữ liệu được load từ StudentController.Edit (GET).
-    Sau khi chỉnh sửa xong → gửi form sang Edit (POST).
-*@
-@model SIMS.DatabaseContext.Entities.Student   // Model gửi vào là Student
+﻿@model SIMS.DatabaseContext.Entities.Student
 
 @{
-    Layout = "~/Views/Shared/_MainLayout.cshtml";        // Dùng layout chính
-    ViewData["title"] = "Edit Student";                  // Tiêu đề trang
-    ViewData["breadcrumb"] = "Students";                 // Breadcrumb
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    ViewData["title"] = "Edit Student";
+    ViewData["breadcrumb"] = "Students";
     ViewData["breadcrumb_item"] = "Edit Student";
 }
 
-<!-- Nếu có thông báo thành công từ TempData -->
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-
-<!-- Nếu có thông báo lỗi từ TempData -->
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-}
-
-<!-- Form gửi đến StudentController.Edit (POST) -->
-<form asp-action="Edit" method="post">
-
-    <!-- Hidden field chứa StudentId để biết đang sửa student nào -->
+<form asp-action="Edit" method="post" autocomplete="off">
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="StudentId" />
 
-    <!-- FULL NAME -->
-    <!-- asp-for chính là binding trực tiếp đến Model.FullName -->
-    <div class="form-group">
+    <div class="mb-3">
         <label asp-for="FullName"></label>
         <input asp-for="FullName" class="form-control" />
-        <!-- ModelState errors tự hiển thị thông qua validation -->
+        <span asp-validation-for="FullName" class="text-danger"></span>
     </div>
 
-    <!-- EMAIL -->
-    <div class="form-group">
+    <div class="mb-3">
         <label asp-for="Email"></label>
         <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
-    <!-- MAJOR -->
-    <div class="form-group">
+    <div class="mb-3">
         <label asp-for="Major"></label>
         <input asp-for="Major" class="form-control" />
     </div>
 
-    <!-- GENDER -->
-    <div class="form-group">
+    <div class="mb-3">
         <label asp-for="Gender"></label>
-        <input asp-for="Gender" class="form-control" />
+        <select asp-for="Gender" class="form-control">
+            <option value="">-- Select Gender --</option>
+            <option>Male</option>
+            <option>Female</option>
+        </select>
     </div>
 
-    <!-- DOB -->
-    <div class="form-group">
+    <div class="mb-3">
         <label asp-for="Dob"></label>
         <input asp-for="Dob" type="date" class="form-control" />
     </div>
 
-    <!-- CLASS -->
-    <div class="form-group">
-        <label>Class</label>
-        <select asp-for="Class" class="form-select">
+    <div class="mb-3">
+        <label asp-for="Class"></label>
+        <select asp-for="Class" class="form-control" asp-items="ViewBag.ClassesList">
             <option value="">-- Select Class --</option>
-            @foreach (var cls in (List<string>)ViewBag.Classes)
-            {
-                <option value="@cls" selected="@(cls == Model.Class)">
-                    @cls
-                </option>
-            }
         </select>
     </div>
 
-    <!-- GPA -->
-    <div class="form-group">
+    <div class="mb-3">
         <label asp-for="GPA"></label>
-        <input asp-for="GPA" class="form-control" />
+        <input asp-for="GPA" type="number" step="0.01" class="form-control" />
     </div>
 
-    <!-- ACADEMIC STANDING -->
-    <div class="form-group">
+    <div class="mb-3">
         <label asp-for="AcademicStanding"></label>
         <input asp-for="AcademicStanding" class="form-control" />
     </div>
 
-    <!-- USERNAME: Lấy từ bảng User liên kết với Faculty -->
-    <div class="form-group">
+    <hr />
+    <h5>Login Information</h5>
+
+    <div class="mb-3 position-relative">
         <label>Username</label>
-        <!-- name="NewUserName" phải trùng tên biến trong Controller -->
-        <!-- Lấy giá trị từ Model.User?.Username -->
-        <input type="text" name="Username" class="form-control" value="@Model.User?.Username" />
+        <input id="UsernameInput" name="Username" class="form-control" value="@Model.User?.Username" />
+        <span class="text-danger">@Html.ValidationMessage("Username")</span>
     </div>
 
-    <!-- PASSWORD: hiển thị password hiện tại (plaintext) -->
-    <div class="form-group">
-        <label for="password">Password</label>
+    <div class="mb-3 position-relative">
+        <label>New Password</label>
+        <input id="PasswordInput" name="Password" type="password" class="form-control" placeholder="Leave blank if not change" />
+        <span class="text-danger">@Html.ValidationMessage("Password")</span>
 
-        <div class="position-relative">
-            <input type="password"
-                   id="password"
-                   name="Password"
-                   class="form-control pe-5"
-                   value="@Model.User?.HashPassword"
-                   onfocus="showEye()" />
-
-            <i id="toggleEye"
-               class="fa fa-eye position-absolute top-50 end-0 translate-middle-y me-3 text-muted d-none"
-               style="cursor:pointer; opacity:0.5"
-               onmousedown="event.preventDefault()"
-               onclick="togglePassword()"></i>
-        </div>
+        <button type="button" class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                id="togglePassword">
+            <i class="bi bi-eye" id="eyeIcon"></i>
+        </button>
     </div>
 
-
-
-    <!-- NÚT SUBMIT -->
-    <button type="submit" class="btn btn-primary mt-2">Update Students</button>
-    <a asp-action="Index" class="btn btn-secondary mt-2">Cancel</a>
+    <button type="submit" class="btn btn-success">Update Student</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
 
-<script>
-    function togglePassword() {
-        const input = document.getElementById("password");
-        const icon = document.getElementById("toggleEye");
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Toggle password
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('PasswordInput');
+        const eyeIcon = document.getElementById('eyeIcon');
 
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.replace("fa-eye", "fa-eye-slash");
-        } else {
-            input.type = "password";
-            icon.classList.replace("fa-eye-slash", "fa-eye");
-        }
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
 
-        input.focus(); // giữ con trỏ trong ô
-    }
-
-    function showEye() {
-        document.getElementById("toggleEye").classList.remove("d-none");
-    }
-</script>
+            if(type === 'text') {
+                eyeIcon.classList.remove('bi-eye');
+                eyeIcon.classList.add('bi-eye-slash');
+            } else {
+                eyeIcon.classList.remove('bi-eye-slash');
+                eyeIcon.classList.add('bi-eye');
+            }
+        });
+    </script>
+}

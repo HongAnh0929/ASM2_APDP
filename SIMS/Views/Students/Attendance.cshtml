@@ -1,0 +1,60 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model IEnumerable<SIMS.DatabaseContext.Entities.Attendance>
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+
+    ViewData["title"] = "My Attendance";
+    ViewData["breadcrumb"] = "Attendance";
+    ViewData["breadcrumb_item"] = "My Attendance Record";
+}
+
+<h3 class="mb-3">
+    Attendance Record - <strong>@ViewBag.StudentName</strong>
+</h3>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        No attendance records found.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Course</th>
+                <th>Faculty</th>
+                <th>Class</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var a in Model)
+            {
+                <tr>
+                    <td>@a.Course?.CourseName</td>
+                    <td>@a.Course?.Faculty?.FacultyName</td>
+                    <td>@a.Course?.Class</td>
+                    <td>@a.Date.ToString("dd/MM/yyyy")</td>
+
+                    <td class="text-center fw-bold">
+                        @if (a.Present)
+                        {
+                            <span class="text-success">PRESENT</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">ABSENT</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

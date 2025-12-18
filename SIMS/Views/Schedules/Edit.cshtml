@@ -1,90 +1,89 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model SIMS.DatabaseContext.Entities.Schedule
+﻿@model SIMS.DatabaseContext.Entities.Schedule
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    // Chỉ định layout chung
     Layout = "~/Views/Shared/_MainLayout.cshtml";
-
-    // Gửi dữ liệu tiêu đề sang layout
-    ViewData["title"] = "Edit Schedules";
+    ViewData["Title"] = "Edit Schedule";
     ViewData["breadcrumb"] = "Schedules";
-    ViewData["breadcrumb_item"] = "Edit Schedules";
+    ViewData["breadcrumb_item"] = "Edit Schedule";
 }
 
 <form asp-action="Edit" method="post">
-    @* Khi submit form, gửi POST đến Action Edit *@
+    @Html.AntiForgeryToken()
 
-    <!-- Hidden ID -->
-    <!-- Cần để giữ lại ScheduleId để biết đang chỉnh sửa lịch nào -->
+    <!-- ID -->
     <input type="hidden" asp-for="ScheduleId" />
 
+    <!-- FACULTY -->
     <div class="mb-3">
-        <label>Faculty</label>
-
-        <!-- Dropdown chọn khoa (Faculty) -->
-        <!-- dùng name="FacultyId" để controller nhận đúng giá trị -->
-        <select name="FacultyId" class="form-select" required>
+        <label asp-for="FacultyId"></label>
+        <select asp-for="FacultyId"
+                asp-items="ViewBag.Faculties"
+                id="facultySelect"
+                class="form-select">
             <option value="">-- select faculty --</option>
-
-            @foreach (var f in (List<SelectListItem>)ViewBag.Faculties)
-            {
-                <!-- Với Edit:
-                     f.Selected = true cho khoa hiện tại của Schedule
-                     Razor sẽ thêm thuộc tính selected vào option đó
-                -->
-                <option value="@f.Value" selected="@(f.Selected ? "selected" : null)">
-                    @f.Text
-                </option>
-            }
         </select>
+        <span asp-validation-for="FacultyId" class="text-danger"></span>
     </div>
 
+    <!-- COURSE -->
     <div class="mb-3">
-        <label>Course</label>
-
-        <!-- Dropdown chọn Course -->
-        <select name="CourseId" class="form-select" required>
+        <label asp-for="CourseId"></label>
+        <select asp-for="CourseId"
+                asp-items="ViewBag.Courses"
+                id="courseSelect"
+                class="form-select">
             <option value="">-- select course --</option>
-
-            @foreach (var c in (List<SelectListItem>)ViewBag.Courses)
-            {
-                <!-- Giống như Faculty, mục Course đang được chọn sẽ có selected -->
-                <option value="@c.Value" selected="@(c.Selected ? "selected" : null)">
-                    @c.Text
-                </option>
-            }
         </select>
+        <span asp-validation-for="CourseId" class="text-danger"></span>
     </div>
 
+    <!-- CLASS -->
     <div class="mb-3">
-        <label>Date</label>
-
-        <!-- Input date cần định dạng yyyy-MM-dd vì HTML5 yêu cầu -->
-        <input type="date" name="Date" class="form-control"
-               value="@Model.Date.ToString("yyyy-MM-dd")" required />
+        <label asp-for="Class"></label>
+        <input asp-for="Class" class="form-control" />
+        <span asp-validation-for="Class" class="text-danger"></span>
     </div>
 
+    <!-- DATE -->
+    <div class="mb-3">
+        <label asp-for="Date"></label>
+        <input asp-for="Date" type="date"
+               class="form-control"
+               max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+
+    <!-- TIME -->
     <div class="mb-3">
         <label>Time</label>
+        <div class="d-flex gap-2">
+            <input type="time"
+                   name="StartTime"
+                   class="form-control"
+                   value="@ViewBag.StartTime" />
 
-        <!-- Thời gian (string) ví dụ: 08:00 - 10:00 -->
-        <input type="text" name="Time" class="form-control"
-               value="@Model.Time" placeholder="08:00 - 10:00" required />
+            <span class="align-self-center">-</span>
+
+            <input type="time"
+                   name="EndTime"
+                   class="form-control"
+                   value="@ViewBag.EndTime" />
+        </div>
     </div>
 
+    <!-- ROOM -->
     <div class="mb-3">
-        <label>Room</label>
-
-        <!-- Phòng học -->
-        <input type="text" name="Room" class="form-control"
-               value="@Model.Room" required />
+        <label asp-for="Room"></label>
+        <input asp-for="Room" class="form-control" />
+        <span asp-validation-for="Room" class="text-danger"></span>
     </div>
 
-    <!-- Nút Update -->
-    <button class="btn btn-primary">Update</button>
-
-    <!-- Quay về danh sách -->
+    <!-- BUTTON -->
+    <button class="btn btn-primary">Update Schedule</button>
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,65 +1,47 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<SIMS.DatabaseContext.Entities.Course>
+﻿@model IEnumerable<SIMS.DatabaseContext.Entities.Course>
 
 @{
     Layout = "~/Views/Shared/_MainLayout.cshtml";
-    @* Dùng layout chung *@
-
     ViewData["title"] = "Assigned Courses";
-    @* Tiêu đề của trang *@
-
     ViewData["breadcrumb"] = "Faculty";
-    @* Breadcrumb chính *@
-
     ViewData["breadcrumb_item"] = "Assigned Courses";
-    @* Breadcrumb con *@
-
-    int facultyId = (int)ViewBag.FacultyId; 
-    @* Lấy facultyId từ ViewBag do controller gửi xuống *@
 }
 
-@* ====================== TRƯỜNG HỢP KHÔNG CÓ MÔN HỌC ====================== *@
 @if (!Model.Any())
 {
-    <div class="alert alert-info">No courses assigned to this faculty.</div>
-    @* Nếu danh sách rỗng → giảng viên chưa được phân công môn nào *@
+    <div class="alert alert-info text-center">
+        No assigned courses found.
+    </div>
 }
 else
 {
-    @* ====================== BẢNG MÔN HỌC ĐƯỢC GIAO ====================== *@
     <table class="table table-bordered table-striped">
-        <thead>
+        <thead class="table-light">
             <tr>
-                <th>Course ID</th>
+                <th>ID</th>
                 <th>Course Name</th>
                 <th>Class</th>
-                <th>Date</th>
-                <th>Actions</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th style="width:150px">Actions</th>
             </tr>
         </thead>
 
         <tbody>
-            @foreach (var course in Model)
+            @foreach (var c in Model)
             {
                 <tr>
-                    @* ================= HIỂN THỊ THÔNG TIN MÔN HỌC ================= *@
-                    <td>@course.CourseId</td>
-                    <td>@course.CourseName</td>
-                    <td>@course.Class</td>
-
+                    <td>@c.CourseId</td>
+                    <td>@c.CourseName</td>
+                    <td>@c.Class</td>
+                    <td>@c.StartDate?.ToString("dd/MM/yyyy")</td>
+                    <td>@c.EndDate?.ToString("dd/MM/yyyy")</td>
                     <td>
-                        @* Hiển thị ngày bắt đầu và kết thúc. Nếu null thì hiện '-' *@
-                        @(course.StartDate?.ToShortDateString() ?? "-")
-                        - @(course.EndDate?.ToShortDateString() ?? "-")
-                    </td>
-
-                    <td>
-                        @* Nút View Schedule (thay cho RecordAttendance cũ) *@
-                        <a asp-controller="Schedules" asp-action="Index" asp-route-courseId="@course.CourseId"
+                        <a asp-controller="Schedules"
+                           asp-action="Index"
+                           asp-route-courseId="@c.CourseId"
                            class="btn btn-primary btn-sm">
-                           Schedule
+                            Schedule
                         </a>
                     </td>
                 </tr>

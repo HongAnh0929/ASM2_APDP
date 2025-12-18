@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model SIMS.DatabaseContext.Entities.Faculty
+﻿@model SIMS.DatabaseContext.Entities.Faculty
 
 @{
     Layout = "~/Views/Shared/_MainLayout.cshtml";
@@ -10,99 +7,85 @@
     ViewData["breadcrumb_item"] = "Edit Faculty";
 }
 
-<!-- Form gửi POST tới Faculty/Edit -->
 <form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="FacultyId" />
 
-    <!-- Hidden field để gửi FacultyId về Controller -->
-    <input type="hidden" name="facultyId" value="@Model.FacultyId" />
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <ul>
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
 
-    <!-- Faculty Name -->
-    <div class="form-group">
-        <label asp-for="FacultyName"></label>
-        <!-- asp-for tự binding value từ Model -->
+    <div class="mb-3">
+        <label asp-for="FacultyName" class="form-label"></label>
         <input asp-for="FacultyName" class="form-control" />
         <span asp-validation-for="FacultyName" class="text-danger"></span>
     </div>
 
-    <!-- Email -->
-    <div class="form-group">
-        <label asp-for="Email"></label>
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
         <input asp-for="Email" class="form-control" />
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
-    <!-- Department -->
-    <div class="form-group">
-        <label asp-for="Department"></label>
+    <div class="mb-3">
+        <label asp-for="Department" class="form-label"></label>
         <input asp-for="Department" class="form-control" />
-        <span asp-validation-for="Department" class="text-danger"></span>
     </div>
 
-    <!-- Phone -->
-    <div class="form-group">
-        <label asp-for="Phone"></label>
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label"></label>
         <input asp-for="Phone" class="form-control" />
-        <span asp-validation-for="Phone" class="text-danger"></span>
     </div>
 
-    <!-- Hire Date -->
-    <div class="form-group">
-        <label asp-for="HireDate"></label>
-        <!-- type="date" giúp hiển thị datepicker -->
+    <div class="mb-3">
+        <label asp-for="HireDate" class="form-label"></label>
         <input asp-for="HireDate" type="date" class="form-control" />
-        <span asp-validation-for="HireDate" class="text-danger"></span>
     </div>
 
-    <!-- USERNAME: Lấy từ bảng User liên kết với Faculty -->
-    <div class="form-group">
-        <label>Username</label>
-        <!-- name="NewUserName" phải trùng tên biến trong Controller -->
-        <!-- Lấy giá trị từ Model.User?.Username -->
-        <input type="text" name="NewUserName" class="form-control" value="@Model.User?.Username" />
+    <hr />
+    <h5>Login Information</h5>
+
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input name="Username" class="form-control" value="@(ViewData["Username"] ?? Model.User?.Username)" />
+        <span class="text-danger">@Html.ValidationMessage("Username")</span>
     </div>
 
-    <!-- PASSWORD: hiển thị password hiện tại (plaintext) -->
-    <div class="form-group">
-        <label for="password">Password</label>
+    <div class="mb-3 position-relative">
+        <label class="form-label">Password</label>
+        <input id="PasswordInput" name="Password" type="password" class="form-control" placeholder="Leave blank if not change" />
+        <span class="text-danger">@Html.ValidationMessage("Password")</span>
 
-        <div class="position-relative">
-            <input type="password"
-                   id="password"
-                   name="NewUserPassword"
-                   class="form-control pe-5"
-                   value="@Model.User?.HashPassword"
-                   onfocus="showEye()" />
-
-            <i id="toggleEye"
-               class="fa fa-eye position-absolute top-50 end-0 translate-middle-y me-3 text-muted d-none"
-               style="cursor:pointer; opacity:0.5"
-               onmousedown="event.preventDefault()"
-               onclick="togglePassword()"></i>
-        </div>
+        <button type="button" class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
+                id="togglePassword" style="z-index: 2;">
+            <i class="bi bi-eye" id="eyeIcon"></i>
+        </button>
     </div>
 
-    <!-- BUTTONS -->
-    <button type="submit" class="btn btn-primary mt-2">Update Faculty</button>
-    <a asp-action="Index" class="btn btn-secondary mt-2">Cancel</a>
+    <button type="submit" class="btn btn-success mt-3">Update Faculty</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
 
-<script>
-    function togglePassword() {
-        const input = document.getElementById("password");
-        const icon = document.getElementById("toggleEye");
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('PasswordInput');
+        const eyeIcon = document.getElementById('eyeIcon');
 
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.replace("fa-eye", "fa-eye-slash");
-        } else {
-            input.type = "password";
-            icon.classList.replace("fa-eye-slash", "fa-eye");
-        }
-
-        input.focus(); // giữ con trỏ trong ô
-    }
-
-    function showEye() {
-        document.getElementById("toggleEye").classList.remove("d-none");
-    }
-</script>
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            eyeIcon.classList.toggle('bi-eye-slash');
+            eyeIcon.classList.toggle('bi-eye');
+        });
+    </script>
+}

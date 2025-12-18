@@ -19,7 +19,7 @@ namespace SIMS.DatabaseContext.Entities
         public DateTime? UpdateAt { get; set; } = DateTime.Now;
 
         public int UserId { get; set; }
-        public User User { get; set; }
+        public User? User { get; set; } 
 
         public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
         public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();

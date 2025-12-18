@@ -1,35 +1,28 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model IEnumerable<SIMS.DatabaseContext.Entities.Schedule>
+﻿@model IEnumerable<SIMS.DatabaseContext.Entities.Schedule>
 
 @{
-    // Layout chính của website
     Layout = "~/Views/Shared/_MainLayout.cshtml";
-
-    // Thông tin truyền sang layout để hiển thị tiêu đề và breadcrumb
-    ViewData["title"] = "Edit Schedules";
+    ViewData["title"] = "Schedules";
     ViewData["breadcrumb"] = "Schedules";
     ViewData["breadcrumb_item"] = "List of Schedules";
 }
 
 @if (TempData["SuccessMessage"] != null)
 {
-    // Hiển thị thông báo nếu vừa cập nhật/ thêm/ xóa thành công
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
 }
 
-<table class="table table-bordered table-striped">
-    <thead>
+<table class="table table-bordered table-striped align-middle">
+    <thead class="table-light">
         <tr>
-            <th>ScheduleId</th>
+            <th>ID</th>
             <th>Faculty</th>
             <th>Course</th>
             <th>Class</th>
             <th>Date</th>
             <th>Time</th>
             <th>Room</th>
-            @if (User.IsInRole("Admin, Faculty"))
+            @if (User.IsInRole("Admin") || User.IsInRole("Faculty") || User.IsInRole("Student"))
             {
                 <th>Actions</th>
             }
@@ -37,62 +30,73 @@
     </thead>
 
     <tbody>
-        @foreach (var s in Model)   @* Lặp qua tất cả Schedule trong danh sách *@
+        @if (!Model.Any())
         {
             <tr>
-                <!-- Hiển thị ID của Schedule -->
-                <td>@s.ScheduleId</td>
-
-                <!-- Lấy tên khoa (FacultyName) thông qua Navigation Property -->
-                <td>@s.Faculty?.FacultyName</td>
-
-                <!-- Lấy tên khóa học (CourseName) -->
-                <td>@s.Course?.CourseName</td>
-
-                <td>@s.Course?.Class</td>
-
-                <!-- Kiểm tra nếu Date chưa có giá trị (default) thì hiển thị "-" -->
-                <td>@(s.Date == default(DateTime) ? "-" : s.Date.ToString("yyyy-MM-dd"))</td>
-
-                <!-- Nếu Time rỗng thì hiển thị "-" -->
-                <td>@(string.IsNullOrEmpty(s.Time) ? "-" : s.Time)</td>
-
-                <!-- Hiển thị Room, nếu rỗng thì "-" -->
-                <td>@(string.IsNullOrEmpty(s.Room) ? "-" : s.Room)</td>
-
-                <td>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <!-- Admin: tất cả các nút -->
-                        <a class="btn btn-sm btn-warning"
-                           asp-action="Edit"
-                           asp-route-id="@s.ScheduleId">
-                            Edit
-                        </a>
-
-                        <a class="btn btn-sm btn-danger"
-                           asp-action="Delete"
-                           asp-route-id="@s.ScheduleId"
-                           onclick="return confirm('Delete?')">
-                            Delete
-                        </a>
-
-                        <a asp-controller="Faculty" asp-action="RecordAttendance" asp-route-courseId="@s.CourseId"
-                           class="btn btn-info btn-sm">
-                            Record Attendance
-                        </a>
-                    }
-                    else if (User.IsInRole("Faculty"))
-                    {
-                        <!-- Faculty: chỉ nút Record Attendance -->
-                        <a asp-controller="Faculty" asp-action="RecordAttendance" asp-route-courseId="@s.CourseId"
-                           class="btn btn-info btn-sm">
-                            Record Attendance
-                        </a>
-                    }
-                </td>
-
+                <td colspan="8" class="text-center">No schedules found.</td>
             </tr>
+        }
+        else
+        {
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td>@s.ScheduleId</td>
+                    <td>@s.Faculty?.FacultyName</td>
+                    <td>@s.Course?.CourseName</td>
+                    <td>@(string.IsNullOrEmpty(s.Class) ? "-" : s.Class)</td>
+                    <td>@s.Date.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @if (s.StartTime.HasValue && s.EndTime.HasValue)
+                        {
+                            @($"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}")
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                    <td>@(string.IsNullOrEmpty(s.Room) ? "-" : s.Room)</td>
+
+                    <td>
+                        @* ADMIN *@
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@s.ScheduleId">Edit</a>
+                            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@s.ScheduleId"
+                               onclick="return confirm('Delete this schedule?')">Delete</a>
+
+                            <a class="btn btn-sm btn-info"
+                               asp-controller="Faculty"
+                               asp-action="RecordAttendance"
+                               asp-route-scheduleId="@s.ScheduleId">
+                                Record Attendance
+                            </a>
+                        }
+
+                        @* FACULTY *@
+                        @if (User.IsInRole("Faculty"))
+                        {
+                            <a class="btn btn-sm btn-info"
+                               asp-controller="Faculty"
+                               asp-action="RecordAttendance"
+                               asp-route-scheduleId="@s.ScheduleId">
+                                Record Attendance
+                            </a>
+                        }
+
+                        @* STUDENT *@
+                        @if (User.IsInRole("Student"))
+                        {
+                            <a class="btn btn-sm btn-secondary"
+                               asp-controller="Students"
+                               asp-action="Attendance">
+                                Attendance
+                            </a>
+                        }
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </table>

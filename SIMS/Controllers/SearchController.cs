@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SIMS.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using SIMS.DatabaseContext;
 
 namespace SIMS.Controllers
 {
@@ -18,46 +18,64 @@ namespace SIMS.Controllers
             if (string.IsNullOrWhiteSpace(q))
                 return RedirectToAction("Index", "Dashboard");
 
-            q = q.ToLower();
+            q = q.ToLower().Trim();
 
-            if (q.Contains("list students") || q.Contains("students"))
+            // ===== QUICK COMMAND =====
+            if (q.Contains("list students") || q == "students")
                 return RedirectToAction("Index", "Students");
 
             if (q.Contains("add student"))
                 return RedirectToAction("Add", "Students");
 
-            if (q.Contains("list courses") || q.Contains("courses"))
+            if (q.Contains("list courses") || q == "courses")
                 return RedirectToAction("Index", "Courses");
 
             if (q.Contains("add course"))
                 return RedirectToAction("Add", "Courses");
 
-            if (q.Contains("list schedules") || q.Contains("schedules"))
+            if (q.Contains("list schedules") || q == "schedules")
                 return RedirectToAction("Index", "Schedules");
 
             if (q.Contains("add schedule"))
                 return RedirectToAction("Add", "Schedules");
 
-            // Students
+            // =========================
+            // STUDENTS
+            // =========================
             var students = _db.Students
-                .Where(s => s.FullName.Contains(q) || s.Class.Contains(q))
                 .Include(s => s.User)
+                .Where(s =>
+                    (!string.IsNullOrEmpty(s.FullName) && s.FullName.ToLower().Contains(q)) ||
+                    (!string.IsNullOrEmpty(s.Class) && s.Class.ToLower().Contains(q))
+                )
                 .ToList();
 
-            // Courses
+            // =========================
+            // COURSES
+            // =========================
             var courses = _db.Courses
-                .Where(c => c.CourseName.Contains(q) || c.Class.Contains(q))
                 .Include(c => c.Faculty)
+                .Where(c =>
+                    (!string.IsNullOrEmpty(c.CourseName) && c.CourseName.ToLower().Contains(q)) ||
+                    (!string.IsNullOrEmpty(c.Class) && c.Class.ToLower().Contains(q))
+                )
                 .ToList();
 
-            // Schedules
+            // =========================
+            // SCHEDULES
+            // =========================
             var schedules = _db.Schedules
-                .Where(s => s.Room.Contains(q) || s.Time.Contains(q))
                 .Include(s => s.Course)
                 .Include(s => s.Faculty)
+                .Where(s =>
+                    (!string.IsNullOrEmpty(s.Room) && s.Room.ToLower().Contains(q)) ||
+
+                    // search theo giờ (08, 09, 10...)
+                    (s.StartTime.HasValue && s.StartTime.Value.ToString(@"hh\:mm").Contains(q)) ||
+                    (s.EndTime.HasValue && s.EndTime.Value.ToString(@"hh\:mm").Contains(q))
+                )
                 .ToList();
 
-            // Truyền qua View
             ViewBag.Query = q;
             ViewBag.Students = students;
             ViewBag.Courses = courses;

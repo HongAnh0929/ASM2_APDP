@@ -1,0 +1,51 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model List<SIMS.DatabaseContext.Entities.Student>
+
+@{
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+    var course = ViewBag.Course as SIMS.DatabaseContext.Entities.Course;
+    var className = ViewBag.ClassName as string;
+    ViewData["Title"] = $"Students in {course?.CourseName} - {className}";
+}
+
+<h3>Students in Course: @course?.CourseName - Class: @className</h3>
+
+@if (Model != null && Model.Count > 0)
+{
+    <table class="table table-bordered text-center">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Student ID</th>
+                <th>Full Name</th>
+                <th>Gender</th>
+                <th>Email</th>
+                <th>Major</th>
+                <th>Class</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>@(i + 1)</td>
+                    <td>@Model[i].StudentId</td>
+                    <td>@Model[i].FullName</td>
+                    <td>@Model[i].Gender</td>
+                    <td>@Model[i].Email</td>
+                    <td>@Model[i].Major</td>
+                    <td>@Model[i].Class</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-controller="Courses" asp-action="Index" class="btn btn-secondary">Cancel</a>
+}
+else
+{
+    <p>No students enrolled in this class.</p>
+}
+

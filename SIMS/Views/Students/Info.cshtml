@@ -15,64 +15,56 @@
     ViewData["breadcrumb_item"] = "Profile students";    @* Breadcrumb phụ *@
 }
 
-@* Kiểm tra nếu Model == null -> không có thông tin sinh viên *@
 @if (Model == null)
 {
     <div class="alert alert-warning">
-        <h3> Student information is not available. </h3>
+        <h3>Student information is not available.</h3>
     </div>
 }
 else
 {
-    @* Nếu Model có dữ liệu, in ra toàn bộ thông tin của Student *@
     <form>
-        @* Full Name *@
         <div class="form-group">
             <label>Full Name</label>
             <input class="form-control" value="@Model.FullName" readonly />
         </div>
 
-        @* Email (lấy từ User liên kết với Student)
-           Model.User là navigation property đến bảng Users *@
         <div class="form-group">
             <label>Email</label>
-            <input class="form-control" value="@Model.User.Email" readonly />
+            <input class="form-control" value="@Model.User?.Email" readonly />
         </div>
 
-        @* Major (chuyên ngành) *@
         <div class="form-group">
             <label>Major</label>
             <input class="form-control" value="@Model.Major" readonly />
         </div>
 
-        @* Giới tính *@
         <div class="form-group">
             <label>Gender</label>
             <input class="form-control" value="@Model.Gender" readonly />
         </div>
 
-        @* Ngày sinh, chuyển sang định dạng ngắn *@
         <div class="form-group">
             <label>Date of Birth</label>
             <input class="form-control" value="@Model.Dob.ToShortDateString()" readonly />
         </div>
 
-        @* Lớp *@
         <div class="form-group">
             <label>Class</label>
             <input class="form-control" value="@Model.Class" readonly />
         </div>
 
-        @* GPA *@
-        <div class="form-group">
-            <label>GPA</label>
-            <input class="form-control" value="@Model.GPA" readonly />
-        </div>
+        @if (!User.IsInRole("Student"))
+        {
+            <div class="form-group">
+                <label>GPA</label>
+                <input class="form-control" value="@Model.GPA" readonly />
+            </div>
 
-        @* Xếp loại học tập *@
-        <div class="form-group">
-            <label>Academic Standing</label>
-            <input class="form-control" value="@Model.AcademicStanding" readonly />
-        </div>
+            <div class="form-group">
+                <label>Academic Standing</label>
+                <input class="form-control" value="@Model.AcademicStanding" readonly />
+            </div>
+        }
     </form>
 }

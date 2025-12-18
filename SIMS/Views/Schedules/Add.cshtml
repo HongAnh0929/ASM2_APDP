@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@model SIMS.DatabaseContext.Entities.Schedule
+﻿@model SIMS.DatabaseContext.Entities.Schedule
 
 @{
     Layout = "~/Views/Shared/_MainLayout.cshtml";
@@ -10,128 +7,106 @@
     ViewData["breadcrumb_item"] = "Add Schedules";
 }
 
-@*
-    Form gửi dữ liệu POST đến action Add (SchedulesController).
-    Dữ liệu gửi lên: FacultyId, CourseId, Date, Time, Room.
-*@
 <form asp-action="Add" method="post">
+    @Html.AntiForgeryToken()
 
-    @*
-        Dropdown chọn giảng viên.
-        ViewBag.Faculties được truyền từ controller với dạng List<SelectListItem>.
-    *@
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <!-- FACULTY -->
     <div class="mb-3">
-        <label>Faculty</label>
-        <select name="FacultyId" class="form-select" required>
+        <label asp-for="FacultyId"></label>
+        <select asp-for="FacultyId" asp-items="ViewBag.Faculties"
+                id="facultySelect" class="form-select">
             <option value="">-- select faculty --</option>
-
-            @foreach (var f in (List<SelectListItem>)ViewBag.Faculties)
-            {
-                @* Mỗi dòng trong dropdown: value = FacultyId, text = FacultyName *@
-                <option value="@f.Value">@f.Text</option>
-            }
         </select>
     </div>
 
-    @*
-        Dropdown chọn Course.
-        ViewBag.Courses chứa danh sách môn học dạng SelectListItem.
-    *@
+    <!-- COURSE -->
     <div class="mb-3">
-        <label>Course</label>
-        <select name="CourseId" class="form-select" required>
+        <label asp-for="CourseId"></label>
+        <select asp-for="CourseId" asp-items="ViewBag.Courses"
+                id="courseSelect" class="form-select">
             <option value="">-- select course --</option>
+        </select>
+    </div>
 
-            @foreach (var c in (List<SelectListItem>)ViewBag.Courses)
+    <!-- CLASS -->
+    <div class="mb-3">
+        <label asp-for="Class"></label>
+        <select asp-for="Class" id="classSelect" class="form-select">
+            <option value="">-- select class --</option>
+
+            @if (ViewBag.Classes != null)
             {
-                <option value="@c.Value">@c.Text</option>
+                foreach (string cls in ViewBag.Classes)
+                {
+                    <option value="@cls" selected="@(cls == Model.Class)">
+                        @cls
+                    </option>
+                }
             }
         </select>
     </div>
 
+    <!-- DATE -->
     <div class="mb-3">
-        <label>Class</label>
-        <select name="Class" id="classSelect" class="form-select" required>
-            <option value="">-- select class --</option>
-        </select>
+        <label asp-for="Date"></label>
+        <input asp-for="Date" type="date" class="form-control" />
     </div>
 
-    @*
-        Input ngày học.
-        Thuộc tính name="Date" khớp với model Schedule.Date.
-    *@
-    <div class="mb-3">
-        <label>Date</label>
-        <input type="date" name="Date" class="form-control" required />
-    </div>
-
-    @*
-        Input giờ học.
-        Người dùng nhập thủ công, ví dụ: 08:00 - 10:00.
-        asp-validation-for dùng để hiển thị lỗi validate nếu có.
-    *@
+    <!-- TIME -->
     <div class="mb-3">
         <label>Time</label>
-
         <div class="d-flex gap-2">
-            <input type="time"
-                   name="StartTime"
-                   class="form-control"
-                   required />
-
+            <input asp-for="StartTime" type="time" class="form-control" />
             <span class="align-self-center">-</span>
-
-            <input type="time"
-                   name="EndTime"
-                   class="form-control"
-                   required />
+            <input asp-for="EndTime" type="time" class="form-control" />
         </div>
     </div>
-    @*
-        Phòng học.
-        Người dùng nhập tên phòng: A101, B204,...
-    *@
+
+    <!-- ROOM -->
     <div class="mb-3">
-        <label>Room</label>
-        <input type="text" name="Room" class="form-control" placeholder="A101" required />
+        <label asp-for="Room"></label>
+        <input asp-for="Room" class="form-control" />
     </div>
 
-    @* Nút lưu *@
     <button class="btn btn-primary">Save</button>
-
-    @* Quay lại danh sách schedule *@
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-
 </form>
 
-<script>
-    document.querySelector('select[name="CourseId"]').addEventListener('change', function () {
-        const courseId = this.value;
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const facultySelect = document.getElementById('facultySelect');
+        const courseSelect = document.getElementById('courseSelect');
         const classSelect = document.getElementById('classSelect');
 
-        classSelect.innerHTML = '<option value="">-- select class --</option>';
+        facultySelect.addEventListener('change', async () => {
+            courseSelect.innerHTML = '<option value="">-- select course --</option>';
+            classSelect.innerHTML = '<option value="">-- select class --</option>';
 
-        if (!courseId) return;
+            if (!facultySelect.value) return;
 
-        fetch(`/Schedules/GetClassesByCourse?courseId=${courseId}`)
-            .then(res => res.json())
-            .then(data => {
-                data.forEach(cls => {
-                    const option = document.createElement('option');
-                    option.value = cls;
-                    option.text = cls;
-                    classSelect.appendChild(option);
-                });
+            const res = await fetch(`/Schedules/GetCoursesByFaculty?facultyId=${facultySelect.value}`);
+            const data = await res.json();
+
+            data.forEach(c => {
+                courseSelect.add(new Option(c.courseName, c.courseId));
             });
-    });
+        });
 
-     document.querySelector("form").addEventListener("submit", function (e) {
-        const start = document.querySelector('input[name="StartTime"]').value;
-        const end = document.querySelector('input[name="EndTime"]').value;
+        courseSelect.addEventListener('change', async () => {
+            classSelect.innerHTML = '<option value="">-- select class --</option>';
 
-        if (start && end && start >= end) {
-            alert("End time must be later than start time!");
-            e.preventDefault();
-        }
-    });
-</script>
+            if (!courseSelect.value) return;
+
+            const res = await fetch(`/Schedules/GetClassesByCourse?courseId=${courseSelect.value}`);
+            const data = await res.json();
+
+            data.forEach(cls => {
+                classSelect.add(new Option(cls, cls));
+            });
+        });
+    </script>
+}

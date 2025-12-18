@@ -356,3 +356,4 @@ D:\APDP\SIMS\SIMS\obj\Debug\net8.0\SIMS.pdb
 D:\APDP\SIMS\SIMS\obj\Debug\net8.0\SIMS.genruntimeconfig.cache
 D:\APDP\SIMS\SIMS\obj\Debug\net8.0\ref\SIMS.dll
 D:\APDP\SIMS\SIMS\obj\Debug\net8.0\SIMS.sourcelink.json
+D:\APDP\SIMS\SIMS\bin\Debug\net8.0\BCrypt.Net-Next.dll

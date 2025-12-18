@@ -1,347 +1,353 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIMS.DatabaseContext;
 using SIMS.DatabaseContext.Entities;
-using SIMS.Services;
 using System.Security.Claims;
 
 namespace SIMS.Controllers
 {
+    [Authorize(Roles = "Admin,Faculty,Student")]
     public class FacultyController : Controller
     {
-        private readonly FacultyService _facultyService; // Service xử lý business logic cho Faculty
-        private readonly SimDbContext _db; // DbContext để thao tác với database
+        private readonly SimDbContext _db;
+        public FacultyController(SimDbContext db) => _db = db;
 
-        public FacultyController(FacultyService facultyService, SimDbContext db)
-        {
-            _facultyService = facultyService;
-            _db = db;
-        }
-
-        // ======================= INDEX =======================
-        [Authorize(Roles = "Admin, Faculty, Student")] // Chỉ các role này được xem danh sách
+        // ========================= 1. INDEX =========================
         public IActionResult Index(string? search)
         {
-            // Lấy danh sách Faculty kèm User liên kết
-            var faculties = _db.Faculties
-                               .Include(f => f.User) // Join với bảng Users
-                               .AsQueryable();
+            IQueryable<Faculty> query = _db.Faculties.Include(f => f.User);
 
-            // Nếu có text search
-            if (!string.IsNullOrEmpty(search))
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            if (role == "Admin")
             {
-                var term = search.ToLower();
-                faculties = faculties.Where(f =>
-                    f.FacultyName.ToLower().Contains(term) ||
-                    f.Email.ToLower().Contains(term) ||
-                    f.Department.ToLower().Contains(term) ||
-                    // Tìm theo Username của User (kiểm tra null trước)
-                    (f.User != null && f.User.Username.ToLower().Contains(term))
-                );
-            }
-
-            ViewBag.SearchTerm = search;
-
-            return View(faculties.ToList()); // Trả dữ liệu sang View
-        }
-
-        // ======================= ADD (GET) =======================
-        [Authorize(Roles = "Admin")] // Chỉ admin được thêm Faculty
-        [HttpGet]
-        public IActionResult Add()
-        {
-            // Lấy danh sách Users có role Faculty để gán vào Faculty mới
-            ViewBag.Users = new SelectList(_db.Users.Where(u => u.Role == "Faculty"), "Id", "Username");
-            return View();
-        }
-
-        // ======================= ADD (POST) =======================
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Add(
-    [Bind("FacultyName,Email,Department,Phone,HireDate,UserId")] Faculty faculty,
-    string Username,
-    string Password)
-        {
-            // ================= EMAIL VALIDATION (@gmail.com) =================
-            if (string.IsNullOrEmpty(faculty.Email) || !faculty.Email.EndsWith("@gmail.com"))
-            {
-                ViewBag.EmailError = "Email must be in format @gmail.com";
-                return View(faculty); // ❌ không lưu, ❌ không redirect
-            }
-
-            // Validate cơ bản
-            if (string.IsNullOrEmpty(faculty.FacultyName))
-            {
-                TempData["ErrorMessage"] = "Faculty name is required.";
-                return View(faculty);
-            }
-
-            // ================= USER LOGIC =================
-            if (!string.IsNullOrEmpty(Username))
-            {
-                var existingUser = _db.Users.FirstOrDefault(u => u.Username == Username);
-
-                if (existingUser != null)
+                // Admin thấy tất cả, filter search
+                if (!string.IsNullOrWhiteSpace(search))
                 {
-                    faculty.UserId = existingUser.Id;
+                    search = search.ToLower();
+                    query = query.Where(f =>
+                        f.FacultyName.ToLower().Contains(search) ||
+                        f.Email.ToLower().Contains(search) ||
+                        f.Department.ToLower().Contains(search));
+                }
+            }
+            else if (role == "Faculty")
+            {
+                // Faculty thấy chính mình
+                query = query.Where(f => f.UserId == userId);
+            }
+            else if (role == "Student")
+            {
+                var studentClass = _db.Students
+                    .Where(s => s.UserId == userId)
+                    .Select(s => s.Class)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(studentClass))
+                {
+                    // 1. Lấy courses ra memory trước
+                    var courses = _db.Courses
+                        .Where(c => c.Class != null)
+                        .ToList();
+
+                    // 2. Xử lý Split trong memory
+                    var facultyIds = courses
+                        .Where(c => c.Class
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(cl => cl.Trim())
+                            .Contains(studentClass))
+                        .Select(c => c.FacultyId)
+                        .Distinct()
+                        .ToList();
+
+                    // 3. Query Faculty
+                    query = _db.Faculties
+                        .Include(f => f.User)
+                        .Where(f => facultyIds.Contains(f.FacultyId));
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(Password))
-                    {
-                        TempData["ErrorMessage"] = "Password is required for new user!";
-                        return View(faculty);
-                    }
-
-                    var newUser = new User
-                    {
-                        Username = Username,
-                        Email = faculty.Email,
-                        Role = "Faculty",
-                        CreateAt = DateTime.Now,
-                        HashPassword = Password // theo yêu cầu của bạn
-                    };
-
-                    _db.Users.Add(newUser);
-                    _db.SaveChanges();
-
-                    faculty.UserId = newUser.Id;
+                    query = Enumerable.Empty<Faculty>().AsQueryable();
                 }
             }
 
-            // ================= SAVE FACULTY =================
+            // Áp dụng search cuối cùng (trừ Student và Faculty nếu không muốn)
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.ToLower();
+                query = query.Where(f =>
+                    f.FacultyName.ToLower().Contains(search) ||
+                    f.Email.ToLower().Contains(search) ||
+                    f.Department.ToLower().Contains(search));
+            }
+
+            return View(query.ToList());
+        }
+
+        // ========================= 2. ADD =========================
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult Add() => View();
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Add(Faculty faculty, string Username, string Password)
+        {
+            if (string.IsNullOrWhiteSpace(Username) || Username.Length < 8)
+                ModelState.AddModelError("Username", "Username must be at least 8 characters");
+            else if (!char.IsUpper(Username[0]))
+                ModelState.AddModelError("Username", "Username must start with uppercase letter");
+
+            if (_db.Users.Any(u => u.Username == Username))
+                ModelState.AddModelError("Username", "Username already exists");
+
+            if (string.IsNullOrWhiteSpace(Password) || Password.Length < 8)
+                ModelState.AddModelError("Password", "Password must be at least 8 characters");
+
+            if (string.IsNullOrWhiteSpace(faculty.Email) || !faculty.Email.Contains("@gmail.com"))
+                ModelState.AddModelError("Email", "Email must contain '@gmail.com'");
+
+            if (_db.Faculties.Any(f => f.Email == faculty.Email))
+                ModelState.AddModelError("Email", "Email already exists");
+
+            if (!ModelState.IsValid)
+            {
+                ViewData["Username"] = Username;
+                return View(faculty);
+            }
+
+            var user = new User
+            {
+                Username = Username,
+                Email = faculty.Email,
+                HashPassword = Password,
+                Role = "Faculty",
+                CreateAt = DateTime.Now
+            };
+            _db.Users.Add(user);
+            _db.SaveChanges();
+
+            faculty.UserId = user.Id;
+            faculty.User = user;
             _db.Faculties.Add(faculty);
             _db.SaveChanges();
 
-            TempData["SuccessMessage"] = $"Faculty '{faculty.FacultyName}' added successfully!";
-            return RedirectToAction("Index");
+            TempData["SuccessMessage"] = "Faculty added successfully!";
+            return RedirectToAction(nameof(Index));
         }
 
-        // ======================= EDIT (GET) =======================
+        // ========================= 3. EDIT =========================
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Edit(int id)
         {
             var faculty = _db.Faculties.Include(f => f.User).FirstOrDefault(f => f.FacultyId == id);
             if (faculty == null) return NotFound();
-
-            // Gửi danh sách Users để admin có thể chọn gán
-            ViewBag.Users = new SelectList(_db.Users.Where(u => u.Role == "Faculty"), "Id", "Username", faculty.UserId);
-
+            ViewData["Username"] = faculty.User?.Username;
             return View(faculty);
         }
 
-        // ======================= EDIT (POST) =======================
-        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int facultyId, string FacultyName, string Email, string Department, string Phone, DateTime? HireDate,
-                                  string NewUserName, string NewUserPassword, int? UserId)
-        {
-            var faculty = _db.Faculties.Include(f => f.User).FirstOrDefault(f => f.FacultyId == facultyId);
-            if (faculty == null) return NotFound();
-
-            // Cập nhật thông tin cơ bản
-            faculty.FacultyName = FacultyName;
-            faculty.Email = Email;
-            faculty.Department = Department;
-            faculty.Phone = Phone;
-            faculty.HireDate = HireDate;
-
-            // Nếu admin nhập username mới => sửa hoặc tạo account
-            if (!string.IsNullOrEmpty(NewUserName))
-            {
-                User user;
-                if (faculty.User != null)
-                {
-                    // Đã có user => cập nhật thông tin
-                    user = faculty.User;
-                    user.Username = NewUserName;
-
-                    if (!string.IsNullOrEmpty(NewUserPassword))
-                        user.HashPassword = NewUserPassword; 
-                }
-                else
-                {
-                    // Tạo user mới nếu faculty chưa có account
-                    user = new User
-                    {
-                        Username = NewUserName,
-                        HashPassword = string.IsNullOrEmpty(NewUserPassword) ? "" : NewUserPassword,
-                        Role = "Faculty",
-                        CreateAt = DateTime.Now
-                    };
-                    _db.Users.Add(user);
-                    _db.SaveChanges(); // Lưu để có Id
-                }
-
-                faculty.UserId = user.Id;
-            }
-            else if (UserId.HasValue)
-            {
-                // Nếu admin chọn user có sẵn từ dropdown
-                faculty.UserId = UserId.Value;
-            }
-
-            _db.SaveChanges();
-
-            TempData["SuccessMessage"] = $"Faculty '{faculty.FacultyName}' updated successfully!";
-            return RedirectToAction("Index");
-        }
-
-        // ======================= DELETE =======================
         [Authorize(Roles = "Admin")]
-        public IActionResult Delete(int id)
+        public IActionResult Edit(Faculty model, string Username, string? Password)
         {
-            var faculty = _db.Faculties
-                .Include(f => f.User)
-                .Include(f => f.Courses)
-                .FirstOrDefault(f => f.FacultyId == id);
-
+            var faculty = _db.Faculties.Include(f => f.User).FirstOrDefault(f => f.FacultyId == model.FacultyId);
             if (faculty == null) return NotFound();
 
-            _db.Courses.RemoveRange(faculty.Courses);
-            _db.Faculties.Remove(faculty);
-            _db.Users.Remove(faculty.User);
+            if (string.IsNullOrWhiteSpace(model.Email) || !model.Email.Contains("@gmail.com"))
+                ModelState.AddModelError("Email", "Email must contain '@gmail.com'");
+            if (_db.Faculties.Any(f => f.Email == model.Email && f.FacultyId != faculty.FacultyId))
+                ModelState.AddModelError("Email", "Email already exists");
+
+            if (string.IsNullOrWhiteSpace(Username) || Username.Length < 8)
+                ModelState.AddModelError("Username", "Username must be at least 8 characters");
+            else if (!char.IsUpper(Username[0]))
+                ModelState.AddModelError("Username", "Username must start with uppercase letter");
+            if (_db.Users.Any(u => u.Username == Username && u.Id != faculty.UserId))
+                ModelState.AddModelError("Username", "Username already exists");
+
+            if (!string.IsNullOrWhiteSpace(Password) && Password.Length < 8)
+                ModelState.AddModelError("Password", "Password must be at least 8 characters");
+
+            if (!ModelState.IsValid)
+            {
+                ViewData["Username"] = Username;
+                return View(model);
+            }
+
+            faculty.FacultyName = model.FacultyName;
+            faculty.Email = model.Email;
+            faculty.Department = model.Department;
+            faculty.Phone = model.Phone;
+            faculty.HireDate = model.HireDate;
+
+            faculty.User.Username = Username;
+            if (!string.IsNullOrWhiteSpace(Password))
+                faculty.User.HashPassword = Password;
 
             _db.SaveChanges();
-
-            TempData["SuccessMessage"] = $"Faculty '{faculty.FacultyName}' deleted successfully!";
-            return RedirectToAction("Index");
+            TempData["SuccessMessage"] = $"Faculty '{faculty.FacultyName}' updated successfully!";
+            return RedirectToAction(nameof(Index));
         }
 
-        // ======================= ASSIGNED COURSES =======================
+        // ========================= 4. ASSIGNED COURSES =========================
         [Authorize(Roles = "Admin, Faculty")]
         public async Task<IActionResult> AssignedCourses()
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return RedirectToAction("Index", "Login");
-
-            if (!int.TryParse(userIdClaim.Value, out int userId))
-                return RedirectToAction("Index", "Login");
-
-            // Nếu Admin => xem toàn bộ
+            // Nếu là Admin, trả về tất cả courses
             if (User.IsInRole("Admin"))
             {
-                var allCourses = await _db.Courses.ToListAsync();
-                ViewBag.FacultyId = 0;
-                return View(allCourses);
+                var courses = await _db.Courses
+                    .Include(c => c.FacultyCourses)
+                    .ToListAsync();
+
+                return View(courses); // View nhận IEnumerable<Course>
             }
 
-            // Nếu Faculty => chỉ xem các course mình dạy
-            var faculty = await _db.Faculties.FirstOrDefaultAsync(f => f.UserId == userId);
-            if (faculty == null) return RedirectToAction("Index", "Login");
+            // Nếu là Faculty, lấy UserId
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-            var courses = await _db.Courses
-                .Where(c => c.FacultyId == faculty.FacultyId)
+            // Tìm Faculty theo UserId, dùng FirstOrDefaultAsync để tránh lỗi
+            var faculty = await _db.Faculties
+                .FirstOrDefaultAsync(f => f.UserId == userId);
+
+            if (faculty == null)
+            {
+                // Không tìm thấy faculty, trả về view rỗng
+                TempData["ErrorMessage"] = "Faculty not found.";
+                return View(new List<Course>());
+            }
+
+            int facultyId = faculty.FacultyId;
+
+            // Lấy danh sách courses mà faculty được giao
+            var facultyCourses = await _db.FacultyCourses
+                .Where(fc => fc.FacultyId == facultyId)
+                .Include(fc => fc.Course)
+                .Select(fc => fc.Course)
                 .ToListAsync();
 
-            ViewBag.FacultyId = faculty.FacultyId;
-            return View(courses);
+            return View(facultyCourses);
         }
 
-        // ======================= RECORD ATTENDANCE (GET) =======================
-        [Authorize(Roles = "Admin, Faculty")]
+
+
+        // ========================= 5. RECORD ATTENDANCE =========================
         [HttpGet]
-        public async Task<IActionResult> RecordAttendance(int courseId)
+        [Authorize(Roles = "Faculty,Admin")]
+        public async Task<IActionResult> RecordAttendance(int scheduleId)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            // Lấy schedule theo Id
+            var schedule = await _db.Schedules
+                .Include(s => s.Course)
+                .Include(s => s.Course.Enrollments)
+                    .ThenInclude(e => e.Student)
+                .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
 
-            Course course;
+            if (schedule == null) return NotFound();
 
-            if (User.IsInRole("Faculty"))
-            {
-                var faculty = await _db.Faculties.FirstOrDefaultAsync(f => f.UserId == userId);
-                if (faculty == null) return RedirectToAction("AssignedCourses");
-
-                course = await _db.Courses
-                    .FirstOrDefaultAsync(c => c.CourseId == courseId && c.FacultyId == faculty.FacultyId);
-
-                if (course == null) return RedirectToAction("AssignedCourses");
-            }
-            else
-            {
-                course = await _db.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);
-                if (course == null) return RedirectToAction("Index", "Courses");
-            }
-
-            var students = await _db.Enrollments
-                .Where(e => e.CourseId == courseId)
-                .Include(e => e.Student)
+            // Lấy danh sách sinh viên của course và class tương ứng
+            var students = schedule.Course.Enrollments
+                .Where(e => e.Student.Class == schedule.Class)
                 .Select(e => e.Student)
+                .ToList();
+
+            // Lấy attendance hiện tại của các sinh viên trong ngày này
+            var existingAttendance = await _db.Attendances
+                .Where(a => a.CourseId == schedule.CourseId && a.Date == schedule.Date)
                 .ToListAsync();
 
-            var today = DateTime.Today;
+            // Tạo dictionary StudentId -> Present, tránh trùng key
+            var attendanceDict = existingAttendance
+                .GroupBy(a => a.StudentId)
+                .ToDictionary(g => g.Key, g => g.First().Present);
 
-            var attendanceDict = await _db.Attendances
-                .Where(a => a.CourseId == courseId && a.Date == today)
-                .ToDictionaryAsync(a => a.StudentId, a => a.Present);
-
-            ViewBag.CourseId = courseId;
-            ViewBag.CourseName = course.CourseName;
-            ViewBag.ClassName = course.Class;
-            ViewBag.Date = today;
+            // Truyền thông tin sang view
+            ViewBag.ScheduleId = schedule.ScheduleId;
+            ViewBag.CourseId = schedule.CourseId;
+            ViewBag.CourseName = schedule.Course.CourseName;
+            ViewBag.ClassName = schedule.Class;
+            ViewBag.Date = schedule.Date;
             ViewBag.AttendanceDict = attendanceDict;
 
-            return View(students);
+            return View(students); // Model là danh sách Student
         }
 
-        // ======================= RECORD ATTENDANCE (POST) =======================
-        [Authorize(Roles = "Admin, Faculty")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RecordAttendanceSubmit(int courseId, DateTime date, List<int>? presentStudentIds)
+        [Authorize(Roles = "Faculty,Admin")]
+        public async Task<IActionResult> RecordAttendanceSubmit(int scheduleId, Dictionary<int, bool> attendance)
         {
-            var students = await _db.Enrollments
-                .Where(e => e.CourseId == courseId)
+            var schedule = await _db.Schedules
+                .Include(s => s.Course)
+                .Include(s => s.Course.Enrollments)
+                    .ThenInclude(e => e.Student)
+                .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
+
+            if (schedule == null) return NotFound();
+
+            var students = schedule.Course.Enrollments
+                .Where(e => e.Student.Class == schedule.Class)
                 .Select(e => e.Student)
-                .ToListAsync();
+                .ToList();
 
             foreach (var student in students)
             {
-                bool present = presentStudentIds != null &&
-                               presentStudentIds.Contains(student.StudentId);
+                // Kiểm tra nếu đã có attendance cho student + course + date
+                var existing = await _db.Attendances
+                    .FirstOrDefaultAsync(a => a.StudentId == student.StudentId
+                                           && a.CourseId == schedule.CourseId
+                                           && a.Date == schedule.Date);
 
-                var existing = await _db.Attendances.FirstOrDefaultAsync(a =>
-                    a.CourseId == courseId &&
-                    a.StudentId == student.StudentId &&
-                    a.Date == date
-                );
+                bool isPresent = attendance.ContainsKey(student.StudentId) && attendance[student.StudentId];
 
                 if (existing != null)
                 {
-                    existing.Present = present;
+                    // Update trạng thái
+                    existing.Present = isPresent;
                 }
                 else
                 {
-                    _db.Attendances.Add(new Attendance
+                    // Tạo mới
+                    var newAttendance = new Attendance
                     {
-                        CourseId = courseId,
                         StudentId = student.StudentId,
-                        Date = date,
-                        Present = present
-                    });
+                        CourseId = schedule.CourseId,
+                        Date = schedule.Date,
+                        Present = isPresent
+                    };
+                    _db.Attendances.Add(newAttendance);
                 }
             }
 
             await _db.SaveChangesAsync();
 
-            TempData["Success"] = "Attendance saved successfully!";
-
-            return RedirectToAction("RecordAttendance", new { courseId });
+            TempData["SuccessMessage"] = "Attendance recorded successfully!";
+            return RedirectToAction("RecordAttendance", new { scheduleId = scheduleId });
         }
 
 
-        // ======================= MANAGE ACADEMIC RECORD =======================
-        [Authorize(Roles = "Admin, Faculty")]
-        public async Task<IActionResult> ManageAcademicRecord()
+        // ========================= 6. DELETE =========================
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
         {
-            var students = await _facultyService.GetAllStudents();
-            return View(students);
+            var faculty = _db.Faculties.Include(f => f.User).FirstOrDefault(f => f.FacultyId == id);
+            if (faculty == null) return NotFound();
+
+            if (faculty.User != null)
+                _db.Users.Remove(faculty.User);
+
+            _db.Faculties.Remove(faculty);
+            _db.SaveChanges();
+
+            TempData["SuccessMessage"] = "Faculty deleted successfully!";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
